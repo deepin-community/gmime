@@ -1,0 +1,32 @@
+This package is maintained with git-buildpackage in the git repo as
+indicated in the Vcs-* fields in debian/control.
+
+The debian packaging git repository incorporates upstream's git
+history as well, which is found at https://github.com/jstedfast/gmime.
+
+You can configure a sensible local working copy with:
+
+    git clone https://anonscm.debian.org/git/collab-maint/gmime.git
+    cd gmime
+    for x in upstream pristine-tar experimental master; do
+        git checkout $x
+    done
+    git remote add github https://github.com/jstedfast/gmime
+    git remote update github
+
+The simplest way to discover/fetch a new tarball is:
+
+    uscan --verbose
+
+Then you can import it while merging with upstream via:
+
+    gbp import-orig ../gmime_${newversion}.orig.tar.xz
+
+Building a new package from the master branch looks like:
+
+    gbp buildpackage --changes-option=-S --git-tag
+
+See debian/gbp.conf and debian/watch for details about how the
+packaging git repository is integrated with upstream development.
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>, Mon, 22 May 2017 12:49:29 -0400

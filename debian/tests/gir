@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -e
+
+diff <(python3 /usr/share/doc/gir1.2-gmime-3.0/examples/gmime-example.py) <(echo "Subject is: a test message")

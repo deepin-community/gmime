@@ -1,0 +1,6 @@
+usr/include/
+usr/lib/*/libgmime-3.0.a
+usr/lib/*/libgmime-3.0.so
+usr/lib/*/pkgconfig/gmime-3.0.pc
+usr/share/gir-1.0/GMime-3.0.gir
+usr/share/vala/vapi/*

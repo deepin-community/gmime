@@ -1,0 +1,579 @@
+gmime (3.2.7-1) unstable; urgency=medium
+
+  * New upstream release
+  * drop patch, applied upstream
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Sat, 21 Mar 2020 08:27:51 -0400
+
+gmime (3.2.6-2) unstable; urgency=medium
+
+  * PKCS#7: ensure we know the validity of the underlying certificate
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Wed, 18 Mar 2020 17:47:30 -0400
+
+gmime (3.2.6-1) unstable; urgency=medium
+
+  * new upstream release
+  * make libgmime-3.0-dev multi-arch: same (thanks, M-A hinter!)
+  * updated symbols with 64-bit time functions
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Mon, 24 Feb 2020 13:17:37 -0500
+
+gmime (3.2.5-3) unstable; urgency=medium
+
+  * mark libgmime-3.0-doc Multi-Arch: foreign
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Tue, 04 Feb 2020 14:58:49 -0500
+
+gmime (3.2.5-2) unstable; urgency=medium
+
+  [ Simon McVittie ]
+  * Add a superficial test for the -dev package (Closes: #939925)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Mon, 03 Feb 2020 17:12:00 -0500
+
+gmime (3.2.5-1) unstable; urgency=medium
+
+  * New upstream release
+  * Standards-Version: bump to 4.5.0 (no changes needed)
+  * debian/tests/control: wrap-and-sort -ast
+  * drop docbook-utils from build-depends, ignoring GMime tutorial
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Mon, 03 Feb 2020 16:31:11 -0500
+
+gmime (3.2.4-1) unstable; urgency=medium
+
+  * New upstream release
+  * dropped patches already upstream
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Thu, 03 Oct 2019 22:24:33 -0400
+
+gmime (3.2.3-2) unstable; urgency=medium
+
+  * enable session key retrieval by requiring gpgme >= 1.8.0
+  * move to unstable
+  * standards-version: bump to 4.4.1 (no changes needed)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Mon, 30 Sep 2019 17:34:39 -0400
+
+gmime (3.2.3-1) experimental; urgency=medium
+
+  * new upstream release, to experimental due to freeze
+  * standards-version: bump to 4.3.0 (no changes needed)
+  * move to debhelper 12
+  * drop patches already upstream
+  * explicitly avoid shipping .la file
+  * add --as-needed to linker
+  * cherry-pick patches from upstream
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Wed, 01 May 2019 13:23:21 -0400
+
+gmime (3.2.1-1) unstable; urgency=medium
+
+  * new upstream release
+  * drop patches, already upstream
+  * fix up upstream missing metadata files
+  * debian/libgmime-3.0-0.symbols: added Build-Depends-Package:
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Mon, 29 Oct 2018 14:50:55 -0400
+
+gmime (3.2.0-3) unstable; urgency=medium
+
+  * remove unnecessary configure flags (Closes: #910528)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Mon, 08 Oct 2018 02:18:56 -0400
+
+gmime (3.2.0-2) unstable; urgency=medium
+
+  * libgmime-3.0-dev Suggests: libgmime-3.0-doc, not libmime-3.0-doc
+  * d/gbp.conf: put pristine-tar in the right section
+  * move to DEP-14
+  * Standards-Version: bump to 4.2.1 (no changes needed)
+  * added Rules-Requires-Root: no
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Sat, 06 Oct 2018 16:04:23 -0500
+
+gmime (3.2.0-1) unstable; urgency=medium
+
+  * new upstream release
+  * d/watch: find 3.2.x updates
+  * docs are now in /u/s/gtk-doc/html/gmime-3.2
+  * avoid illegal seek in uuencode (Closes: #887625)
+  * update symbols
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Mon, 22 Jan 2018 17:35:52 +0100
+
+gmime (3.0.5-2) unstable; urgency=medium
+
+  * Standards-Version: bump to 4.1.3 (no changes needed)
+  * move to debhelper 11
+  * libgmime-3.0-doc: place documentation in /u/s/doc/libgmime-3.0-dev
+  * Vcs-*: move to salsa.debian.org
+  * d/copyright: use secure copyright format URL
+  * d/copyright: point to github as upstream preferred source
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Thu, 18 Jan 2018 01:05:40 -0500
+
+gmime (3.0.5-1) unstable; urgency=medium
+
+  * new upstream release
+  * Standards-Version: bump to 4.1.2 (no changes needed)
+  * drop patches already applied upstream
+  * add g_mime_utils_header_unfold to symbols
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Sat, 09 Dec 2017 16:59:34 -0500
+
+gmime (3.0.4-1) unstable; urgency=medium
+
+  * new upstream release
+  * update symbols to include new functions
+  * d/changelog: clean up trailing whitespace
+  * d/copyright (drop getopt)
+  * bugfix patches from upstream
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Mon, 27 Nov 2017 18:08:48 -0500
+
+gmime (3.0.2-2) unstable; urgency=medium
+
+  * Improve python example code for GMime 3.0
+  * add a simple autopkgtest exercising GObject introspection in python
+  * Standards-Version: bumped to 4.1.1 (no changes needed)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Thu, 26 Oct 2017 16:05:26 -0400
+
+gmime (3.0.2-1) unstable; urgency=medium
+
+  * New upstream release
+  * drop patches already included upstream
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Wed, 13 Sep 2017 10:47:36 -0400
+
+gmime (3.0.1-4) unstable; urgency=medium
+
+  * imported upsteam bugfixes
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Fri, 18 Aug 2017 01:16:56 -0400
+
+gmime (3.0.1-3) unstable; urgency=medium
+
+  * clean up gbp.conf
+  * include bugfixes and patches from upstream (Closes: #869736)
+  * no need for explicit use of autoreconf (already covered by dh 10)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Thu, 27 Jul 2017 14:16:08 -0400
+
+gmime (3.0.1-2) unstable; urgency=medium
+
+  * move to unstable
+  * imported upstream bugfixes
+  * bump Standards-Version to 4.0.0 (no changes needed)
+  * use upstream-preferred homepage
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Wed, 05 Jul 2017 18:07:28 -0400
+
+gmime (3.0.1-1) experimental; urgency=medium
+
+  [ David Bremner ]
+  * Upstream bugfix release: fix upstream bug #782915 (duplicated header
+    names)
+
+  [ Daniel Kahn Gillmor ]
+  * added debian/README.source
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Mon, 22 May 2017 12:51:06 -0400
+
+gmime (3.0.0+dfsg1-1) experimental; urgency=medium
+
+  * upload with dfsg-free tarball (Closes: #861296)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Fri, 28 Apr 2017 14:26:17 -0700
+
+gmime (3.0.0-1) experimental; urgency=medium
+
+  * New upstream major version -- gmime 3.0
+  * ABI/API changes from 2.6 to 3.0
+  * move to experimental for now
+  * drop all C#/mono/.net -- upstream prefers MimeKit instead
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Tue, 25 Apr 2017 13:05:45 -0400
+
+gmime (2.6.22+dfsg1-1) unstable; urgency=medium
+
+  * new dfsg-free upstream tarball of non-free attachments (Closes:
+    #858794)
+  * swap maintainer and uploader
+  * use dversionmangle in debian/watch to adjust for repacked dfsg orig.tgz
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Mon, 24 Apr 2017 09:04:52 -0400
+
+gmime (2.6.22-2) unstable; urgency=medium
+
+  * avoid including example Makefile (for reproducibility)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Tue, 17 Jan 2017 09:43:21 -0500
+
+gmime (2.6.22-1) unstable; urgency=medium
+
+  * New upstream version 2.6.22
+  * refresh patches
+  * fix misnamed g_mime_decryption_result_* functions
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Tue, 17 Jan 2017 09:10:19 -0500
+
+gmime (2.6.21-1) unstable; urgency=medium
+
+  * new upstream release
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Mon, 12 Dec 2016 12:36:40 +0100
+
+gmime (2.6.20-9) unstable; urgency=medium
+
+  * include upstream bugfixes (Closes #831299)
+  * bump versions needed for debhelper and dpkg-dev (thanks, lintian!)
+  * wrap-and-sort -ast
+  * bump to debhelper 10
+  * clean up debian/copyright
+  * clean up and differentiate binary package short descriptions
+  * avoid unnecessary verbosity
+  * ensure we use all hardening rules
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Mon, 28 Nov 2016 23:46:58 -0500
+
+gmime (2.6.20-8) unstable; urgency=medium
+
+  * gnupg is required for compile-time test suite
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Wed, 13 Jul 2016 19:14:56 +0200
+
+gmime (2.6.20-7) unstable; urgency=medium
+
+  * drop zero-width-space chars in debian/changelog (Closes: #830576)
+  * revert to slightly more complex build process to separate arch:any
+    from arch:all builds
+  * explicitly clarify that CONFIG_SHELL during build for libgmime-2.6-doc
+    reproducibility
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Wed, 13 Jul 2016 15:49:17 +0200
+
+gmime (2.6.20-6) unstable; urgency=medium
+
+  * improve python gir example.
+  * revert to slightly more complex build process to separate arch:any
+    from arch:all builds
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Sat, 09 Jul 2016 00:15:18 +0200
+
+gmime (2.6.20-5) unstable; urgency=medium
+
+  * point to the correct gir-examples
+  * make a phony shlibs.local file when needed (Closes: #806033)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Thu, 07 Jul 2016 17:35:42 -0400
+
+gmime (2.6.20-4) unstable; urgency=medium
+
+  * use dh-exec to make packaging simpler and more declarative
+  * simplify packaging further
+  * export SHELL to try to make libgmime-2.6-​doc reproducible
+  * include a python example of using GObject introspection
+  * ship vala files in -dev
+  * note the years of work in debian/copyright
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Thu, 07 Jul 2016 14:00:40 -0400
+
+gmime (2.6.20-3) unstable; urgency=medium
+
+  * Include build-deps for gobject introspection (Closes: #829555)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Wed, 06 Jul 2016 07:54:50 -0400
+
+gmime (2.6.20-2) unstable; urgency=medium
+
+  * filter out unnecessary stuff from upstream tarball
+  * wrap-and-sort -as
+  * fixing Vcs-* headers in debian/control
+  * bump standards-version to 3.9.8 (no changes needed)
+  * make patches more friendly to gbp pq
+  * drop -dbg package in favor of automatic -dbgsym packages
+  * Add gir1.2-gmime-2.6 package for GObject introspection (Closes: #829555)
+  * simplify debian/rules clean target
+  * updated debian/watch
+  * removed unnecessary .PHONY target in debian/rules
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Tue, 05 Jul 2016 22:54:49 -0400
+
+gmime (2.6.20-1) unstable; urgency=medium
+
+  * New Upsteam Release
+  * dropped debian/patches/fix-upstream-711305.diff, merged upstream.
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Fri, 23 May 2014 15:03:54 -0400
+
+gmime (2.6.19-3) unstable; urgency=low
+
+  * put the gmime-sharp-2.6.pc header in the right place (Closes: #735411)
+  * debian/control: bump Standards-Version to 3.9.5 (no changes needed)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Mon, 20 Jan 2014 17:24:59 -0500
+
+gmime (2.6.19-2) unstable; urgency=low
+
+  * rewrite headers cleanly (cherrypick bugfix from upstream for
+    https://bugzilla.gnome.org/show_bug.cgi?id=711305
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Sun, 10 Nov 2013 22:32:34 -0500
+
+gmime (2.6.19-1) unstable; urgency=low
+
+  * New Upstream Release (Closes: #727093)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Tue, 22 Oct 2013 20:37:21 -0400
+
+gmime (2.6.18-1) unstable; urgency=low
+
+  * New Upstream Release
+  * use dh_autoreconf
+  * clean up the --with=cli args in debian/rules
+  * upgrade to dh 9
+  * actually multi-arch the shared libraries (Thanks, mbiebl)
+    (Closes: #722609)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Fri, 20 Sep 2013 15:42:04 -0400
+
+gmime (2.6.17-1) unstable; urgency=low
+
+  * New Upstream Release
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Tue, 10 Sep 2013 15:34:25 -0400
+
+gmime (2.6.16-1) unstable; urgency=low
+
+  * New Upstream Release
+  * bumped Standards-Version to 3.9.4 (no changes needed)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Fri, 19 Jul 2013 10:16:22 -0400
+
+gmime (2.6.10-1) unstable; urgency=low
+
+  * New Upstream Release (Closes: #678185)
+  * moved libgmime2.6-cil-dev to Section: cli-mono.  Thanks, Lintian!
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Fri, 22 Jun 2012 10:14:48 -0400
+
+gmime (2.6.9-1) unstable; urgency=low
+
+  * New Upstream Release.
+   - drop debian/patches/fix_gmime-sharp.dll.config_reference.patch
+     (adopted upstream)
+  * added missing versioned build-dep on dpkg-dev for dpkg-buildflags
+    --export=configure.
+  * enabled S/MIME support (Closes: #673077)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Fri, 18 May 2012 15:37:31 -0400
+
+gmime (2.6.7-1) unstable; urgency=low
+
+  * New Upstream Release.
+  * move gmime-bin to Section: utils
+  * debian/control: update Vcs-Browser (Closes: #663207)
+  * ensure gmime-sharp.dll.config points to the correct .so
+    Thanks, Michael Biebl! (Closes: #663220)
+  * bump Stanards-Version to 3.9.3 (no changes needed)
+  * update Format to debian/copyright format 1.0
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Sat, 10 Mar 2012 10:49:36 -0500
+
+gmime (2.6.6-1) unstable; urgency=low
+
+  * New Upstream Release.
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Tue, 21 Feb 2012 18:44:35 -0500
+
+gmime (2.6.4-2) unstable; urgency=low
+
+  * libgmime2.6-cil does not need to Replace: libgmime2.4-cil
+  * enable building only arch-dependent packages without having
+    cli-common-dev installed.
+  * upload to unstable.
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Thu, 09 Feb 2012 12:51:53 -0500
+
+gmime (2.6.4-1) experimental; urgency=low
+
+  * New Upstream Release
+  * Switching to gmime 2.6 (Closes: #657426)
+  * switch source format to 3.0 (quilt)
+  * simplified debian/rules
+  * enable hardened build flags (Thanks, Moritz Muehlenhoff)
+    (Closes: #657328)
+  * Bumped Standards-Version to 3.9.2 (no changes needed).
+  * ship example source in libgmime-2.6-doc (Closes: #603941)
+  * include debugging symbols in libgmime-2.6-0-dbg (Closes: #616365)
+  * added gmime-bin package with gmime-uuencode and gmime-uudecode.
+  * moved packaging repo to collab-maint + git
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Thu, 26 Jan 2012 00:26:37 -0500
+
+gmime2.4 (2.4.31-1) unstable; urgency=low
+
+  * New upstream (bugfix) release
+    + No new API interfaces
+    + Build against Mono 2.10 (closes: #657261)
+  * Ship symbols file for libgmime-2.4-2 starting with 2.4.6
+  * Lowered shlibs to >= 2.6.7 as that was the last version with added symbols
+
+ -- Mirco Bauer <meebey@debian.org>  Wed, 25 Jan 2012 21:31:17 +0100
+
+gmime2.4 (2.4.25-1) unstable; urgency=low
+
+  * New upstream (bugfix) release
+    + No new API interfaces
+  * debian/patches/fix_gmime-sharp_dllmap.patch
+    debian/patches/disable_gtk-sharp.patch:
+    Dropped  as already included upstream
+
+ -- Mirco Bauer <meebey@debian.org>  Tue, 14 Jun 2011 00:05:06 +0200
+
+gmime2.4 (2.4.24-1) unstable; urgency=low
+
+  * New upstream (bugfix) release (Closes: #626134)
+    + No new API interfaces
+    + Fixes a PGP/MIME signature verification regression introduced in 2.4.23.
+      (Closes: #619783)
+
+ -- Mirco Bauer <meebey@debian.org>  Sun, 27 Mar 2011 23:50:16 +0200
+
+gmime2.4 (2.4.23-1) unstable; urgency=low
+
+  * New upstream (bugfix) release (Closes: #617400)
+    + No new API interfaces
+    + Fixes segmentation fault in gpg_ctx_op_step (Closes: #616366)
+    + As of gmime 2.4.15 includes the buffer overflow fix CVE-2010-0409
+      (Obsoletes NMU by Michael Gilbert <michael.s.gilbert@gmail.com>,
+       Closes: #573877)
+
+ -- Mirco Bauer <meebey@debian.org>  Mon, 14 Mar 2011 20:26:34 +0100
+
+gmime2.4 (2.4.14-1) unstable; urgency=low
+
+  * New upstream (bugfix) release
+    + No new API interfaces
+    + Fixes GCC 4.4 strict aliasing issue
+
+ -- Mirco Bauer <meebey@debian.org>  Sat, 30 Jan 2010 19:01:28 +0100
+
+gmime2.4 (2.4.13-1) unstable; urgency=low
+
+  * New upstream (bugfix) release
+    + No new API interfaces
+  * debian/control{,.in}
+    debian/libgmime2.4-cil.links
+    debian/libgmime2.4-cil.install
+    debian/libgmime2.4-cil-dev.install:
+    + Moved gmime-sharp-2.4.pc to new libgmime2.4-cil-dev package.
+    + Dropped unversioned gmime-sharp.pc as upstream is not shipping it, and
+      as it conflicts with libgmime2.2-cil. (Closes: #562400)
+    + Bumped mono-devel build-dep to >= 2.4.3 as that one ensures that all
+      libraries are present that we need.
+    + Replaced libglib2.0-cil buil-dep with libglib2.0-cil-dev as part of the
+      -cil-dev transition, fixing FTBFS. (Closes: #564401)
+
+ -- Mirco Bauer <meebey@debian.org>  Wed, 20 Jan 2010 22:09:18 +0100
+
+gmime2.4 (2.4.11-1) unstable; urgency=low
+
+  [ Emilio Pozuelo Monfort ]
+  * libgmime2.4-cil: Section is cli-mono according to the override.
+  * debian/control.in: Fix typo in package description. Closes: #557689.
+
+  [ Mirco Bauer ]
+  * New upstream release
+  * debian/control:
+    + Versioned monodoc-base build-dep to >= 2.0 as mdoc is needed from that,
+      fixes FTBFS. (Closes: #558466)
+    + Bumped Standards-Version to 3.8.3 (no changes needed).
+    + Replaced monodoc-manual dependency with monodoc-browser | monodoc-viewer
+      as monodoc-base uses now dpkg-triggers for updating the indexes.
+  * debian/control
+    debian/rules:
+    + Bumped mono-devel build-dep to >= 2.4.2.3 as we use mono-csc compiler
+      of it.
+  * debian/rules:
+    + Bumped shlibs to 2.4.11
+  * debian/patches/fix_gmime-sharp_dllmap.patch:
+    + Fixed DLL map so it invokes libgmime-2.4.so.2 instead of .so.2.4.11
+      which fixes the missing binary dependency on the libgime-2.4-2 package.
+  * debian/control:
+    + Added ${misc:Depends} to all binary packages.
+
+ -- Mirco Bauer <meebey@debian.org>  Sun, 06 Dec 2009 17:07:59 +0100
+
+gmime2.4 (2.4.6-5) unstable; urgency=medium
+
+  * debian/rules:
+    + Replaced deprecated monodoc commands with mdoc, fixing FTBFS.
+      (thanks to Albin Tonnerre for the investigation, Closes: #534004)
+
+ -- Mirco Bauer <meebey@debian.org>  Mon, 07 Sep 2009 21:12:04 +0200
+
+gmime2.4 (2.4.6-4) unstable; urgency=low
+
+  * debian/control:
+    + Added Replaces: libgmime2.2a-cil to libgmime2.4-cil as we overwrite the
+      pkg-config symlink of it. (Closes: #526485)
+  * libgmime-2.4-doc.doc-base:
+    + Changed Document to gmime2.4 so it can be installed at the same time
+      with libgmime-2.0-2-doc (gmime). (Closes: #526483)
+
+ -- Mirco Bauer <meebey@debian.org>  Mon, 11 May 2009 00:29:36 +0200
+
+gmime2.4 (2.4.6-3) unstable; urgency=low
+
+  * Here we go, 4th attempt to get build && binary-arch working
+    (if someone wonders, it always perfectly builds inside a pbuilder)
+  * debian/rules:
+    + Only generate monodoc API docs if the assembly was compiled, fixes FTBFS.
+
+ -- Mirco Bauer <meebey@debian.org>  Tue, 28 Apr 2009 21:24:31 +0200
+
+gmime2.4 (2.4.6-2) unstable; urgency=low
+
+  * Args, this is my 3rd attempt to get build + binary-arch working for
+    buildds.
+  * debian/rules:
+    + Make the cli.make include optional, else make bails it with a fatal
+      error, causing FTBFS.
+
+ -- Mirco Bauer <meebey@debian.org>  Tue, 28 Apr 2009 00:14:52 +0200
+
+gmime2.4 (2.4.6-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/control.in:
+    + Really apply short description changes.
+    + Bumped cli-common-dev build-dep to >= 0.5.7 as we use cli.make of it.
+    + Moved cli-common-dev build-dep to Build-Depends-Indep.
+  * debian/rules:
+    + Removed explicit --enable-mono from configure call and let the
+      auto-detection do it's work. This makes arch:any vs arch:any + arch:all
+      builds much simpler. (Closes: #525664)
+
+ -- Mirco Bauer <meebey@debian.org>  Mon, 27 Apr 2009 22:44:40 +0200
+
+gmime2.4 (2.4.4-2) unstable; urgency=low
+
+  * debian/rules:
+    + Replaced full re-autogen with autoreconf, that should be more than
+      enough. (Closes: #525585)
+  * debian/control:
+    + Enhanced package short descriptions. (Closes: #493502)
+
+ -- Mirco Bauer <meebey@debian.org>  Sun, 26 Apr 2009 11:21:38 +0200
+
+gmime2.4 (2.4.4-1) unstable; urgency=low
+
+  * Initial release.
+    (gmime2.2 broke the API and thus a new source package was required,
+     which I packaged from scratch)
+
+ -- Mirco Bauer <meebey@debian.org>  Thu, 19 Mar 2009 22:08:52 +0100

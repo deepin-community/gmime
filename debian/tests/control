@@ -1,0 +1,11 @@
+Tests: gir
+Depends:
+ diffutils,
+ gir1.2-gmime-3.0,
+ python3-gi,
+
+Tests: libgmime-3.0-dev
+Depends:
+ build-essential,
+ libgmime-3.0-dev,
+Restrictions: allow-stderr superficial

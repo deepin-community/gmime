@@ -1,0 +1,29 @@
+#!/bin/sh
+# autopkgtest check: Build and run a program against gmime, to verify
+# that the headers and pkg-config file are installed correctly
+# (C) 2012 Canonical Ltd.
+# (C) 2018-2019 Simon McVittie
+# Authors: Martin Pitt, Simon McVittie
+
+set -eux
+
+WORKDIR=$(mktemp -d)
+trap 'rm -rf "$WORKDIR"' 0 INT QUIT ABRT PIPE TERM
+cd "$WORKDIR"
+cat <<'EOF' > trivial.c
+#include <gmime/gmime.h>
+
+int main(void)
+{
+    g_assert_true(g_mime_check_version(3, 0, 0));
+    return 0;
+}
+EOF
+
+# Deliberately word-splitting pkg-config's output:
+# shellcheck disable=SC2046
+gcc -o trivial trivial.c $(pkg-config --cflags --libs gmime-3.0)
+echo "build: OK"
+[ -x trivial ]
+./trivial
+echo "run: OK"

@@ -1,0 +1,8 @@
+From: Alice <alice@example.net>
+To: Bob <bob@example.net>
+Message-Id: <690bede5-3059-43b8-b302-b634ab2113d6@example.net>
+Subject: a test message
+Date: Thu, 07 Jul 2016 13:06:00 -0400
+Content-Type: text/plain; charset=utf-8
+
+Here is the test.

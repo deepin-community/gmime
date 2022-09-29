@@ -1,0 +1,3 @@
+#!/usr/bin/dh-exec
+examples/.libs/uudecode => /usr/bin/gmime-uudecode
+examples/.libs/uuencode => /usr/bin/gmime-uuencode

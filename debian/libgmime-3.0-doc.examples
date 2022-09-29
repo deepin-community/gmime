@@ -1,0 +1,4 @@
+examples/*.c
+examples/Makefile.am
+examples/Makefile.in
+examples/README
