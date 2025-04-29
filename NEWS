@@ -1,3 +1,56 @@
+### GMime 3.2.13
+
+* Optimized parsing of messages with lots of address headers. (issue #126)
+
+### GMime 3.2.12
+
+* Fixed a memory leak in g_mime_gpgme_get_decrypt_result().
+
+* Updated vapigen.m4, introspection.m4, and gpgme.m4 to improve cross-platform builds.
+
+* Add and use ax_lib_socket_nsl.m4 so that systems that do not require linkage with libnsl
+  are not forced to link with it unnecessesarily.
+
+* Changed the build system to no longer use dolt (which is obsolete).
+
+### GMime 3.2.11
+
+* Fixed a bug in the base64 decoder. D'oh!
+
+### GMime 3.2.10
+
+* Improved performance of base64 encoder by ~5%.
+
+* Improved performance of base64 decoder by ~25%.
+
+* Unref the autocrypt header after adding it to the list. (issue #118)
+
+* Work around a bug in g_time_zone_new_offset() by using identifiers instead. (issue #120)
+
+### GMime 3.2.9
+
+* g_mime_multipart_signed_verify() now allows type/subtype and type/x-subtype signature parts. (issue #115)
+
+* Fixed header folding logic to avoid folding the first line of a header value. (issue #112 and issue #113)
+
+* Fixed bugs discovered by static analysis. (issue #110)
+
+* Fixed GMimeStreamPipe to set errno to ESPIPE for seek/tell/length methods.
+
+* Fixed GMimeCertificates to prefer gpgme_user_id_t's address field over the email field. (issue #102)
+
+### GMime 3.2.8
+
+* Various fixes to Vala (and other?) language bindings. (issue #96 and issue #101)
+
+* Enabled build for PPC64LE architecture (issue #100)
+
+* Added g_mime_object_write_content_to_stream() (issue #97)
+
+* Fixed parameter list parsing logic to not report a warning when everything is valid.
+
+* Fixed the parser to handle MIME parts without headers -or- content of any kind.
+
 ### GMime 3.2.7
 
 * Added some configure logic to auto-detect the system shift-jis charset alias. (issue #81)

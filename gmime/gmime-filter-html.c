@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *  Copyright (C) 2016      Gaute Hope
  *
  *  This library is free software; you can redistribute it and/or
@@ -496,8 +496,10 @@ html_convert (GMimeFilter *filter, char *in, size_t inlen, size_t prespace,
 			outptr = g_stpcpy (outptr, "<br>");
 		}
 		
-		if (inptr < inend)
+		if (inptr < inend) {
+			outptr = check_size (filter, outptr, &outend, 1);
 			*outptr++ = '\n';
+		}
 		
 		start = ++inptr;
 	} while (inptr < inend);

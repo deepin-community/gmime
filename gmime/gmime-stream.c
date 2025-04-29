@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -190,7 +190,7 @@ stream_write (GMimeStream *stream, const char *buf, size_t len)
 /**
  * g_mime_stream_write:
  * @stream: a #GMimeStream
- * @buf: buffer
+ * @buf: (array length=len) (element-type guint8): buffer
  * @len: buffer length
  *
  * Attempts to write up to @len bytes of @buf to @stream.
@@ -573,7 +573,7 @@ g_mime_stream_write_to_stream (GMimeStream *src, GMimeStream *dest)
 /**
  * g_mime_stream_writev:
  * @stream: a #GMimeStream
- * @vector: a #GMimeStreamIOVector
+ * @vector: (array length=count): a #GMimeStreamIOVector
  * @count: number of vector elements
  *
  * Writes at most @count blocks described by @vector to @stream.

@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -134,6 +134,7 @@ GMimeHeaderList *g_mime_object_get_header_list (GMimeObject *object);
 char *g_mime_object_get_headers (GMimeObject *object, GMimeFormatOptions *options);
 
 ssize_t g_mime_object_write_to_stream (GMimeObject *object, GMimeFormatOptions *options, GMimeStream *stream);
+ssize_t g_mime_object_write_content_to_stream (GMimeObject *object, GMimeFormatOptions *options, GMimeStream *stream);
 char *g_mime_object_to_string (GMimeObject *object, GMimeFormatOptions *options);
 
 void g_mime_object_encode (GMimeObject *object, GMimeEncodingConstraint constraint);

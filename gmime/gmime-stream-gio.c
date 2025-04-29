@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -477,7 +477,7 @@ stream_seek (GMimeStream *stream, gint64 offset, GMimeSeekWhence whence)
 		
 		if (gio->ostream) {
 			/* seek on our output stream */
-			if ((outreal = gio_seekable_seek (stream, (GSeekable *) gio->istream, offset, whence)) == -1)
+			if ((outreal = gio_seekable_seek (stream, (GSeekable *) gio->ostream, offset, whence)) == -1)
 				return -1;
 			
 			if (gio->istream == NULL)

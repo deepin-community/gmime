@@ -1,6 +1,6 @@
 # GMime
 
-[![Build Status](https://travis-ci.org/jstedfast/gmime.svg)](https://travis-ci.org/jstedfast/gmime)[![Coverity Scan Build Status](https://scan.coverity.com/projects/11948/badge.svg)](https://scan.coverity.com/projects/jstedfast-gmime)[![Coverage Status](https://coveralls.io/repos/github/jstedfast/gmime/badge.svg?branch=master)](https://coveralls.io/github/jstedfast/gmime?branch=master)
+[![Build Status](https://github.com/jstedfast/gmime/actions/workflows/build.yml/badge.svg?event=push)](https://github.com/jstedfast/gmime/actions/workflows/build.yml)[![Coverity Scan Build Status](https://scan.coverity.com/projects/11948/badge.svg)](https://scan.coverity.com/projects/jstedfast-gmime)[![Coverage Status](https://coveralls.io/repos/github/jstedfast/gmime/badge.svg?branch=master)](https://coveralls.io/github/jstedfast/gmime?branch=master)
 
 ## What is GMime?
 
@@ -28,7 +28,7 @@ high-level application programming interface (API).
 
 ## License Information
 
-The GMime library is Copyright (C) 2000-2020 Jeffrey Stedfast and is licensed under the LGPL v2.1
+The GMime library is Copyright (C) 2000-2022 Jeffrey Stedfast and is licensed under the LGPL v2.1
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -65,7 +65,7 @@ can be done using the following command:
 For proper compilation and functionality of GMime, the following packages
 are REQUIRED:
 
-  - Glib version >= 2.32.0
+  - Glib version >= 2.68.0
 
     Glib provides a number of portability-enhancing functions and types.
     Glib is included in most GMime-supported operating system
@@ -100,13 +100,13 @@ GMimeMessage *message;
 GMimeStream *stream;
 GMimeParser *parser;
 
-stream = g_mime_stream_file_open ("message.eml", "r", NULL);
+stream = g_mime_stream_fs_open ("message.eml", O_RDONLY, 0644, NULL);
 parser = g_mime_parser_new_with_stream (stream);
 
 /* Note: we can unref the stream now since the GMimeParser has a reference to it... */
 g_object_unref (stream);
 
-message = g_mime_parser_construct_message (parser);
+message = g_mime_parser_construct_message (parser, NULL);
 
 /* unref the parser since we no longer need it */
 g_object_unref (parser);
@@ -121,23 +121,23 @@ GMimeParser *parser;
 gint64 offset;
 char *marker;
 
-stream = g_mime_stream_file_open ("Inbox.mbox", "r", NULL);
+stream = g_mime_stream_fs_open ("Inbox.mbox", O_RDONLY, 0644, NULL);
 parser = g_mime_parser_new_with_stream (stream);
 
 /* tell the parser to scan mbox-style "From " markers */
-g_mime_parser_set_scan_from (parser, TRUE);
+g_mime_parser_set_format (parser, GMIME_FORMAT_MBOX);
 
 /* Note: we can unref the stream now since the GMimeParser has a reference to it... */
 g_object_unref (stream);
 
 while (!g_mime_parser_eos (parser)) {
     /* load the next message from the mbox */
-    if ((message = g_mime_parser_construct_message (parser)) != NULL)
+    if ((message = g_mime_parser_construct_message (parser, NULL)) != NULL)
         g_object_unref (message);
 
     /* get information about the mbox "From " marker... */
-    offset = g_mime_parser_get_from_offset (parser);
-    marker = g_mime_parser_get_from (parser);
+    offset = g_mime_parser_get_mbox_marker_offset (parser);
+    marker = g_mime_parser_get_mbox_marker (parser);
 }
 
 g_object_unref (parser);
@@ -232,13 +232,13 @@ while (g_mime_part_iter_next (iter)) {
 
         if (g_mime_part_is_attachment (part)) {
             /* keep track of each attachment's parent multipart */
-            g_ptr_array_append (multiparts, parent);
-            g_ptr_array_append (attachments, part);
+            g_ptr_array_add (multiparts, parent);
+            g_ptr_array_add (attachments, part);
         }
     }
 }
 
-/* now remove each attachment from its parent multipart... */
+/* now remove each attachment its parent multipart... */
 for (int i = 0; i < attachments->len; i++) {
     GMimeMultipart *multipart = (GMimeMultipart *) multiparts->pdata[i];
     GMimeObject *attachment = (GMimeObject *) attachments->pdata[i];
@@ -253,7 +253,7 @@ Creating MIME messages using GMime is really trivial.
 
 ```csharp
 GMimeMessage *message;
-GMimePart *body;
+GMimeTextPart *body;
 
 message = g_mime_message_new (TRUE);
 
@@ -354,7 +354,7 @@ html = CreateTextHtmlPart ();
 /* Note: it is important that the text/html part is added second, because it is the
  * most expressive version and (probably) the most faithful to the sender's WYSIWYG 
  * editor. */
-alternative = g_mime_multipart_with_subtype ("alternative");
+alternative = g_mime_multipart_new_with_subtype ("alternative");
 
 g_mime_multipart_add (alternative, (GMimeObject *) plain);
 g_object_unref (plain);
@@ -402,7 +402,7 @@ rcpts = g_ptr_array_new ();
 g_ptr_array_add (rcpts, "alice@wonderland.com"); // or use her fingerprint
 
 /* now to encrypt our message body */
-if (!(encrypted = g_mime_application_pkcs7_mime_encrypt (body, GMIME_ENCRYPT_FLAGS_NONE, rcpts, &err))) {
+if (!(encrypted = g_mime_application_pkcs7_mime_encrypt (body, GMIME_ENCRYPT_NONE, rcpts, &err))) {
     fprintf (stderr, "encrypt failed: %s\n", err->message);
     g_object_unref (body);
     g_error_free (err);
@@ -426,6 +426,7 @@ The first thing you must do is find the `GMimeApplicationPkcs7Mime` part (see th
 if (GMIME_IS_APPLICATION_PKCS7_MIME (entity)) {
     GMimeApplicationPkcs7Mime *pkcs7 = (GMimeApplicationPkcs7Mime *) entity;
     GMimeSecureMimeType smime_type;
+    GError *err = NULL;
 
     smime_type = g_mime_application_pkcs7_mime_get_smime_type (pkcs7_mime);
     if (smime_type == GMIME_SECURE_MIME_TYPE_ENVELOPED_DATA)
@@ -461,7 +462,7 @@ g_ptr_array_add (rcpts, "alice@wonderland.com"); // or use her fingerprint
 /* now to encrypt our message body */
 ctx = g_mime_gpg_context_new ();
 
-encrypted = g_mime_multipart_encrypted_encrypt (ctx, body, FALSE, NULL, 0, 0, rcpts, &err);
+encrypted = g_mime_multipart_encrypted_encrypt (ctx, body, FALSE, NULL, GMIME_ENCRYPT_NONE, rcpts, &err);
 g_ptr_array_free (rcpts, TRUE);
 g_object_unref (body);
 g_object_unref (ctx);
@@ -472,7 +473,7 @@ if (encrypted == NULL) {
     return;
 }
 
-g_mime_message_set_mime_part (message, encrypted);
+g_mime_message_set_mime_part (message, (GMimeObject *) encrypted);
 g_object_unref (encrypted);
 ```
 
@@ -488,8 +489,10 @@ The first thing you must do is find the `GMimeMultipartEncrypted` part (see the 
 ```c
 if (GMIME_IS_MULTIPART_ENCRYPTED (entity)) {
     GMimeMultipartEncrypted *encrypted = (GMimeMultipartEncrypted *) entity;
+    GMimeDecryptResult *result = NULL;
+    GError *err = NULL;
 
-    return g_mime_multipart_encrypted_decrypt (encrypted, 0, NULL, NULL, &err);
+    return g_mime_multipart_encrypted_decrypt (encrypted, GMIME_DECRYPT_NONE, NULL, &result, &err);
 }
 ```
 
@@ -515,7 +518,7 @@ g_mime_message_set_subject (message, "How you doin?", NULL);
 body = CreateMessageBody ();
 
 /* now to sign our message body */
-if (!(pkcs7 = g_mime_application_pkcs7_mime_sign (body, "joey@friends.com", GMIME_DIGEST_ALGO_DEFAULT, &err))) {
+if (!(pkcs7 = g_mime_application_pkcs7_mime_sign (body, "joey@friends.com", &err))) {
     fprintf (stderr, "sign failed: %s\n", err->message);
     g_object_unref (body);
     g_error_free (err);
@@ -524,7 +527,7 @@ if (!(pkcs7 = g_mime_application_pkcs7_mime_sign (body, "joey@friends.com", GMIM
 
 g_object_unref (body);
 
-g_mime_message_set_mime_part (message, pkcs7);
+g_mime_message_set_mime_part (message, (GMimeObject *) pkcs7);
 g_object_unref (pkcs7);
 ```
 
@@ -550,7 +553,7 @@ body = CreateMessageBody ();
 ctx = g_mime_pkcs7_context_new ();
 
 /* now to sign our message body */
-if (!(ms = g_mime_multipart_signed_sign (ctx, body, "joey@friends.com", GMIME_DIGEST_ALGO_DEFAULT, &err))) {
+if (!(ms = g_mime_multipart_signed_sign (ctx, body, "joey@friends.com", &err))) {
     fprintf (stderr, "sign failed: %s\n", err->message);
     g_object_unref (body);
     g_object_unref (ctx);
@@ -561,7 +564,7 @@ if (!(ms = g_mime_multipart_signed_sign (ctx, body, "joey@friends.com", GMIME_DI
 g_object_unref (body);
 g_object_unref (ctx);
 
-g_mime_message_set_mime_part (message, ms);
+g_mime_message_set_mime_part (message, (GMimeObject *) ms);
 g_object_unref (ms);
 ```
 
@@ -588,7 +591,7 @@ body = CreateMessageBody ();
 ctx = g_mime_gpg_context_new ();
 
 /* now to sign our message body */
-if (!(ms = g_mime_multipart_signed_sign (ctx, body, "joey@friends.com", GMIME_DIGEST_ALGO_DEFAULT, &err))) {
+if (!(ms = g_mime_multipart_signed_sign (ctx, body, "joey@friends.com", &err))) {
     fprintf (stderr, "sign failed: %s\n", err->message);
     g_object_unref (body);
     g_object_unref (ctx);
@@ -599,7 +602,7 @@ if (!(ms = g_mime_multipart_signed_sign (ctx, body, "joey@friends.com", GMIME_DI
 g_object_unref (body);
 g_object_unref (ctx);
 
-g_mime_message_set_mime_part (message, ms);
+g_mime_message_set_mime_part (message, (GMimeObject *) ms);
 g_object_unref (ms);
 ```
 
@@ -625,7 +628,7 @@ if (GMIME_IS_MULTIPART_SIGNED (entity)) {
     GError *err = NULL;
     int i, count;
 
-    if (!(signatures = g_mime_multipart_signed_verify (ms, 0, &err))) {
+    if (!(signatures = g_mime_multipart_signed_verify (ms, GMIME_VERIFY_ENABLE_KEYSERVER_LOOKUPS, &err))) {
         fprintf (stderr, "verify failed: %s\n", err->message);
         g_error_free (err);
         return;
@@ -712,14 +715,14 @@ if (GMIME_IS_APPLICATION_PKCS7_MIME (entity)) {
     if (smime_type == GMIME_SECURE_MIME_TYPE_SIGNED_DATA) {
         /* extract the original content and get a list of signatures */
         GMimeSignatureList *signatures;
-        GMimeObject extracted;
+        GMimeObject *extracted;
         GError *err = NULL;
         int i, count;
 
         /* Note: if you are rendering the message, you'll want to render the
          * extracted mime part rather than the application/pkcs7-mime part. */
 
-        if (!(signatures = g_mime_application_pkcs7_mime_verify (pkcs7, 0, &extracted, &err))) {
+        if (!(signatures = g_mime_application_pkcs7_mime_verify (pkcs7, GMIME_VERIFY_NONE, &extracted, &err))) {
             fprintf (stderr, "verify failed: %s\n", err->message);
             g_error_free (err);
             return;
@@ -731,7 +734,7 @@ if (GMIME_IS_APPLICATION_PKCS7_MIME (entity)) {
             /* ... */
         }
 
-	g_object_unref (signatures);
+        g_object_unref (signatures);
     }
 }
 ```
@@ -804,10 +807,10 @@ of GMime.
 |PORTING        |Guide for developers porting their application from an older version of GMime|
 
 You can find online developer documentation at
-http://library.gnome.org/devel/gmime/stable/
+https://developer-old.gnome.org/gmime/stable/
 
 
-# Mailing Lists
+## Mailing Lists
 
 For discussion of GMime development (either of GMime itself or using
 GMime in your own application), you may find the GMime-Devel
@@ -815,7 +818,7 @@ mailing-list helpful. To subscribe, please see
 [http://mail.gnome.org/mailman/listinfo/gmime-devel-list](http://mail.gnome.org/mailman/listinfo/gmime-devel-list)
 
 
-# Bindings
+## Bindings
 
 Other developers have been working to make GMime available to programmers in other languages.
 The current list of known bindings are:
@@ -827,7 +830,13 @@ The current list of known bindings are:
 |C#         |https://github.com/jstedfast/MimeKit    |
 
 
-# Reporting Bugs
+## Reporting Bugs
 
 Bugs may be reported to the GMime development team by creating a new
 [issue](https://github.com/jstedfast/gmime/issues).
+
+## Reporting Security Issues
+
+Security issues should be reported to <a href="mailto:jestedfa@microsoft.com?subject=GMime%20security%20issue">jestedfa@microsoft.com</a>.
+
+Using a Subject along the lines of "GMime security issue" would be helpful in helping to spot the email message.

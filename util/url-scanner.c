@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -415,7 +415,7 @@ url_web_end (const char *in, const char *pos, const char *inend, urlmatch_t *mat
 			do {
 				if (end[1] != ':') {
 					inptr = end + 1;
-					if ((val = strtol (inptr, &end, 16)) < 0)
+					if ((val = strtol (inptr, &end, 16)) < 0 || val > 65535)
 						return FALSE;
 				} else {
 					inptr = end;

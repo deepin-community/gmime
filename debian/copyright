@@ -2,17 +2,20 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: GMime
 Upstream-Contact: Jeffrey Stedfast <fejj@gnome.org>
 Source: https://github.com/jstedfast/gmime
+Files-Excluded:
+ rfc/rfc*.txt
+ tests/data/mbox/*/jwz.mbox
 
 Files: *
-Copyright: 2000-2017 Jeffrey Stedfast
+Copyright: 2000-2022 Jeffrey Stedfast
 License: LGPL-2.1+
 
 Files: gmime/gmime-encodings.c
-Copyright: 2000-2017 Jeffrey Stedfast and Michael Zucchi
+Copyright: 2000-2020 Jeffrey Stedfast and Michael Zucchi
 License: LGPL-2.1+
 
 Files: zentimer.h
-Copyright: 2000-2017 Jeffrey Stedfast
+Copyright: 2000-2020 Jeffrey Stedfast
 License: BSD-like
  Permission is hereby granted, free of charge, to any person
  obtaining a copy of this software and associated documentation
@@ -36,11 +39,11 @@ License: BSD-like
 
 Files: debian/*
 Copyright: 2009-2012 Mirco Bauer <meebey@debian.org>,
-  2012-2017 Daniel Kahn Gillmor <dkg@fifthhorseman.net>
+  2012-2022 Daniel Kahn Gillmor <dkg@fifthhorseman.net>
 License: GPL-3+
 
 Files: debian/gmime-uuencode.1 debian/gmime-uudecode.1
-Copyright: 2012,2017 Daniel Kahn Gillmor <dkg@fifthhorseman.net>
+Copyright: 2012,2017,2022 Daniel Kahn Gillmor <dkg@fifthhorseman.net>
 License: LGPL-2.1+
 
 License: LGPL-2.1+

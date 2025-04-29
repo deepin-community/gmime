@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -291,8 +291,10 @@ object_headers_cleared (GMimeObject *object)
 static void
 header_list_changed (GMimeHeaderList *headers, GMimeHeaderListChangedEventArgs *args, GMimeObject *object)
 {
+	// FIXME: add a header_inserted() API so that header_added() can be better optimized. See gmime-message.c:message_header_added()/process_header().
 	switch (args->action) {
 	case GMIME_HEADER_LIST_CHANGED_ACTION_ADDED:
+	case GMIME_HEADER_LIST_CHANGED_ACTION_INSERTED:
 		GMIME_OBJECT_GET_CLASS (object)->header_added (object, args->header);
 		break;
 	case GMIME_HEADER_LIST_CHANGED_ACTION_CHANGED:
@@ -975,7 +977,7 @@ object_write_to_stream (GMimeObject *object, GMimeFormatOptions *options, gboole
  * @options: (nullable): a #GMimeFormatOptions or %NULL
  * @stream: stream
  *
- * Write the contents of the MIME object to @stream.
+ * Write the headers and content of the MIME object to @stream.
  *
  * Returns: the number of bytes written or %-1 on fail.
  **/
@@ -988,6 +990,25 @@ g_mime_object_write_to_stream (GMimeObject *object, GMimeFormatOptions *options,
 	return GMIME_OBJECT_GET_CLASS (object)->write_to_stream (object, options, FALSE, stream);
 }
 
+
+/**
+ * g_mime_object_write_content_to_stream:
+ * @object: a #GMimeObject
+ * @options: (nullable): a #GMimeFormatOptions or %NULL
+ * @stream: stream
+ *
+ * Write only the content of the MIME object to @stream.
+ *
+ * Returns: the number of bytes written or %-1 on fail.
+ **/
+ssize_t
+g_mime_object_write_content_to_stream (GMimeObject *object, GMimeFormatOptions *options, GMimeStream *stream)
+{
+	g_return_val_if_fail (GMIME_IS_OBJECT (object), -1);
+	g_return_val_if_fail (GMIME_IS_STREAM (stream), -1);
+	
+	return GMIME_OBJECT_GET_CLASS (object)->write_to_stream (object, options, TRUE, stream);
+}
 
 static void
 object_encode (GMimeObject *object, GMimeEncodingConstraint constraint)

@@ -1,0 +1,3 @@
+# test suite data is legitimately long:
+gmime source: very-long-line-length-in-source-file * > 512 [tests/*]
+gmime source: source-is-missing [tests/data/filters/html-output*.html]

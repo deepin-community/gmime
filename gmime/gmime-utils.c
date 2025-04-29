@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -444,13 +444,34 @@ get_time (const char *in, size_t inlen, int *hour, int *min, int *sec)
 	return TRUE;
 }
 
+static int
+format_timezone_identifier (char *identifier, int len, int tz_offset)
+{
+	int minutes, hours, sign;
+
+	if (tz_offset < 0) {
+		tz_offset *= -1;
+		sign = -1;
+	} else {
+		sign = 1;
+	}
+
+	hours = tz_offset / 100;
+	minutes = tz_offset % 100;
+
+	if (hours >= 24)
+		return -1;
+
+	return snprintf (identifier, len, "%c%02d:%02d:00", (sign > 0) ? '+' : '-', hours, minutes);
+}
+
 static GTimeZone *
 get_tzone (date_token **token)
 {
 	const char *inptr, *inend;
-	char tzone[8];
+	char identifier[10];
+	int tz_offset, i;
 	size_t len, n;
-	int value, i;
 	guint t;
 	
 	for (i = 0; *token && i < 2; *token = (*token)->next, i++) {
@@ -462,13 +483,16 @@ get_tzone (date_token **token)
 			continue;
 		
 		if (len == 5 && (*inptr == '+' || *inptr == '-')) {
-			if ((value = decode_int (inptr + 1, len - 1)) == -1)
+			if ((tz_offset = decode_int (inptr + 1, len - 1)) == -1)
+				return NULL;
+
+			if (*inptr == '-')
+				tz_offset *= -1;
+
+			if (format_timezone_identifier (identifier, sizeof (identifier), tz_offset) < 0)
 				return NULL;
 			
-			memcpy (tzone, inptr, len);
-			tzone[len] = '\0';
-			
-			return g_time_zone_new (tzone);
+			return g_time_zone_new_identifier (identifier);
 		}
 		
 		if (*inptr == '(') {
@@ -485,9 +509,11 @@ get_tzone (date_token **token)
 			if (n != len || strncmp (inptr, tz_offsets[t].name, n) != 0)
 				continue;
 			
-			snprintf (tzone, 6, "%+05d", tz_offsets[t].offset);
+			// TODO: modify the struct to have an `identifier` field instead of `offset` that is a pre-formatted string?
+			if (format_timezone_identifier (identifier, sizeof (identifier), tz_offsets[t].offset) < 0)
+				return NULL;
 			
-			return g_time_zone_new (tzone);
+			return g_time_zone_new_identifier (identifier);
 		}
 	}
 	
@@ -2528,7 +2554,7 @@ header_fold_tokens (GMimeFormatOptions *options, const char *field, const char *
 		} else if (token->encoding != 0) {
 			n = strlen (token->charset) + 7 + (encoded ? 1 : 0);
 			
-			if (len + token->length + n > GMIME_FOLD_LEN) {
+			if (token != tokens && len + token->length + n > GMIME_FOLD_LEN) {
 				if (tab != 0) {
 					/* tabs are the perfect breaking opportunity... */
 					g_string_insert_c (output, tab, '\n');
@@ -2559,7 +2585,7 @@ header_fold_tokens (GMimeFormatOptions *options, const char *field, const char *
 			encoded = TRUE;
 			lwsp = 0;
 			tab = 0;
-		} else if (len + token->length > GMIME_FOLD_LEN) {
+		} else if (token != tokens && len + token->length > GMIME_FOLD_LEN) {
 			if (tab != 0) {
 				/* tabs are the perfect breaking opportunity... */
 				g_string_insert_c (output, tab, '\n');

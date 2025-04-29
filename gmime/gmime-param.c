@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -1335,9 +1335,12 @@ decode_param_list (GMimeParserOptions *options, const char *in, gint64 offset)
 	t = (struct _rfc2184_param *) &list;
 	rfc2184_hash = g_hash_table_new (g_mime_strcase_hash, g_mime_strcase_equal);
 	
-	skip_cfws (&inptr);
-	
 	do {
+		skip_cfws (&inptr);
+		
+		if (*inptr == '\0')
+			break;
+		
 		/* invalid format? */
 		if (!decode_param (options, &inptr, &name, &value, &id, &rfc2047_charset, &encoded, &method, offset)) {
 			skip_cfws (&inptr);

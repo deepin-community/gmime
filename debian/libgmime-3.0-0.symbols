@@ -367,6 +367,7 @@ libgmime-3.0.so.0 libgmime-3.0-0 #MINVER#
  g_mime_object_set_disposition@Base 3.0.0
  g_mime_object_set_header@Base 3.0.0
  g_mime_object_to_string@Base 3.0.0
+ g_mime_object_write_content_to_stream@Base 3.2.9
  g_mime_object_write_to_stream@Base 3.0.0
  g_mime_openpgp_markers@Base 3.2.0
  g_mime_param_get_charset@Base 3.0.0
@@ -621,6 +622,7 @@ libgmime-3.0.so.0 libgmime-3.0-0 #MINVER#
  internet_address_group_set_members@Base 3.0.0
  internet_address_list_add@Base 3.0.0
  internet_address_list_append@Base 3.0.0
+ internet_address_list_append_parse@Base 3.2.13
  internet_address_list_clear@Base 3.0.0
  internet_address_list_contains@Base 3.0.0
  internet_address_list_encode@Base 3.0.0

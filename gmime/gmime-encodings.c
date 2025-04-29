@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast and Michael Zucchi
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast and Michael Zucchi
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -60,7 +60,7 @@ static unsigned char gmime_base64_rank[256] = {
 	255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
 	255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
 	255,255,255,255,255,255,255,255,255,255,255, 62,255,255,255, 63,
-	 52, 53, 54, 55, 56, 57, 58, 59, 60, 61,255,255,255,  0,255,255,
+	 52, 53, 54, 55, 56, 57, 58, 59, 60, 61,255,255,255,255,255,255,
 	255,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
 	 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,255,255,255,255,255,
 	255, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
@@ -166,15 +166,15 @@ const char *
 g_mime_content_encoding_to_string (GMimeContentEncoding encoding)
 {
 	switch (encoding) {
-        case GMIME_CONTENT_ENCODING_7BIT:
+	case GMIME_CONTENT_ENCODING_7BIT:
 		return "7bit";
-        case GMIME_CONTENT_ENCODING_8BIT:
+	case GMIME_CONTENT_ENCODING_8BIT:
 		return "8bit";
 	case GMIME_CONTENT_ENCODING_BINARY:
 		return "binary";
-        case GMIME_CONTENT_ENCODING_BASE64:
+	case GMIME_CONTENT_ENCODING_BASE64:
 		return "base64";
-        case GMIME_CONTENT_ENCODING_QUOTEDPRINTABLE:
+	case GMIME_CONTENT_ENCODING_QUOTEDPRINTABLE:
 		return "quoted-printable";
 	case GMIME_CONTENT_ENCODING_UUENCODE:
 		return "x-uuencode";
@@ -382,35 +382,37 @@ g_mime_encoding_flush (GMimeEncoding *state, const char *inbuf, size_t inlen, ch
 size_t
 g_mime_encoding_base64_encode_close (const unsigned char *inbuf, size_t inlen, unsigned char *outbuf, int *state, guint32 *save)
 {
-	unsigned char *outptr = outbuf;
-	int c1, c2;
-	
+	register unsigned char *outptr = outbuf;
+	register int quartets;
+	unsigned char *saved;
+
 	if (inlen > 0)
-		outptr += g_mime_encoding_base64_encode_step (inbuf, inlen, outptr, state, save);
-	
-	c1 = ((unsigned char *)save)[1];
-	c2 = ((unsigned char *)save)[2];
-	
-	switch (((unsigned char *)save)[0]) {
-	case 2:
-		outptr[2] = base64_alphabet [(c2 & 0x0f) << 2];
-		goto skip;
-	case 1:
-		outptr[2] = '=';
-	skip:
-		outptr[0] = base64_alphabet [c1 >> 2];
-		outptr[1] = base64_alphabet [c2 >> 4 | ((c1 & 0x3) << 4)];
-		outptr[3] = '=';
-		outptr += 4;
-		break;
+		outptr += g_mime_encoding_base64_encode_step (inbuf, inlen, outbuf, state, save);
+
+	saved = (unsigned char *) save;
+	quartets = *state;
+
+	if (*saved > 0) {
+		int c1 = saved[1];
+		int c2 = saved[2];
+
+		*outptr++ = base64_alphabet[c1 >> 2];
+		*outptr++ = base64_alphabet[c2 >> 4 | ((c1 & 0x3) << 4)];
+		if (*saved == 2)
+			*outptr++ = base64_alphabet[(c2 & 0x0f) << 2];
+		else
+			*outptr++ = '=';
+		*outptr++ = '=';
+		quartets++;
 	}
-	
-	*outptr++ = '\n';
-	
-	*save = 0;
+
+	if (quartets > 0)
+		*outptr++ = '\n';
+
 	*state = 0;
-	
-	return (outptr - outbuf);
+	*save = 0;
+
+	return (size_t) (outptr - outbuf);
 }
 
 
@@ -434,71 +436,74 @@ g_mime_encoding_base64_encode_step (const unsigned char *inbuf, size_t inlen, un
 {
 	register const unsigned char *inptr;
 	register unsigned char *outptr;
-	
+	register int quartets;
+	unsigned char *saved;
+	size_t remaining;
+
 	if (inlen == 0)
 		return 0;
-	
+
+	saved = (unsigned char *) save;
+	quartets = *state;
 	outptr = outbuf;
 	inptr = inbuf;
-	
-	if (inlen + ((unsigned char *)save)[0] > 2) {
+
+	if (inlen + *saved > 2) {
 		const unsigned char *inend = inbuf + inlen - 2;
-		register int c1 = 0, c2 = 0, c3 = 0;
-		register int already;
-		
-		already = *state;
-		
-		switch (((char *)save)[0]) {
-		case 1:	c1 = ((unsigned char *)save)[1]; goto skip1;
-		case 2:	c1 = ((unsigned char *)save)[1];
-			c2 = ((unsigned char *)save)[2]; goto skip2;
+		register int c1, c2, c3;
+
+		c1 = *saved < 1 ? *inptr++ : saved[1];
+		c2 = *saved < 2 ? *inptr++ : saved[2];
+		c3 = *inptr++;
+
+	  loop:
+		/* encode our triplet into a quartet */
+		*outptr++ = base64_alphabet[c1 >> 2];
+		*outptr++ = base64_alphabet[(c2 >> 4) | ((c1 & 0x3) << 4)];
+		*outptr++ = base64_alphabet[((c2 & 0x0f) << 2) | (c3 >> 6)];
+		*outptr++ = base64_alphabet[c3 & 0x3f];
+
+		/* encode 19 quartets per line */
+		if ((++quartets) >= 19) {
+			*outptr++ = '\n';
+			quartets = 0;
 		}
-		
-		/* yes, we jump into the loop, no i'm not going to change it, its beautiful! */
-		while (inptr < inend) {
-			c1 = *inptr++;
-		skip1:
-			c2 = *inptr++;
-		skip2:
-			c3 = *inptr++;
-			*outptr++ = base64_alphabet [c1 >> 2];
-			*outptr++ = base64_alphabet [(c2 >> 4) | ((c1 & 0x3) << 4)];
-			*outptr++ = base64_alphabet [((c2 & 0x0f) << 2) | (c3 >> 6)];
-			*outptr++ = base64_alphabet [c3 & 0x3f];
-			/* this is a bit ugly ... */
-			if ((++already) >= 19) {
-				*outptr++ = '\n';
-				already = 0;
-			}
-		}
-		
-		((unsigned char *)save)[0] = 0;
-		inlen = 2 - (inptr - inend);
-		*state = already;
+
+		if (inptr >= inend)
+			goto loop_exit;
+
+		c1 = *inptr++;
+		c2 = *inptr++;
+		c3 = *inptr++;
+		goto loop;
+
+	  loop_exit:
+		remaining = 2 - (size_t) (inptr - inend);
+		*save = 0;
+	} else {
+		remaining = inlen;
 	}
-	
-	d(printf ("state = %d, inlen = %d\n", (int)((char *)save)[0], inlen));
-	
-	if (inlen > 0) {
-		register char *saveout;
-		
-		/* points to the slot for the next char to save */
-		saveout = & (((char *)save)[1]) + ((char *)save)[0];
-		
-		/* inlen can only be 0, 1 or 2 */
-		switch (inlen) {
-		case 2:	*saveout++ = *inptr++;
-		case 1:	*saveout++ = *inptr++;
+
+	if (remaining > 0) {
+		/* At this point, saved can only be 0 or 1. */
+		if (*saved == 0) {
+			/* We can have up to 2 remaining input bytes. */
+			saved[0] = (unsigned char) remaining;
+			saved[1] = *inptr++;
+			if (remaining == 2)
+				saved[2] = *inptr;
+			else
+				saved[2] = 0;
+		} else {
+			/* We have 1 remaining input byte. */
+			saved[2] = *inptr;
+			saved[0] = 2;
 		}
-		((char *)save)[0] += (char) inlen;
 	}
-	
-	d(printf ("mode = %d\nc1 = %c\nc2 = %c\n",
-		  (int)((char *)save)[0],
-		  (int)((char *)save)[1],
-		  (int)((char *)save)[2]));
-	
-	return (outptr - outbuf);
+
+	*state = quartets;
+
+	return (size_t) (outptr - outbuf);
 }
 
 
@@ -518,53 +523,64 @@ g_mime_encoding_base64_encode_step (const unsigned char *inbuf, size_t inlen, un
 size_t
 g_mime_encoding_base64_decode_step (const unsigned char *inbuf, size_t inlen, unsigned char *outbuf, int *state, guint32 *save)
 {
-	register const unsigned char *inptr;
-	register unsigned char *outptr;
-	const unsigned char *inend;
-	register guint32 saved;
-	unsigned char last[2];
+	register const unsigned char *inptr = inbuf;
+	const unsigned char *inend = inptr + inlen;
+	unsigned char *outptr = outbuf;
+	unsigned int saved = *save;
 	unsigned char c, rank;
-	int n;
-	
-	inend = inbuf + inlen;
-	outptr = outbuf;
-	inptr = inbuf;
-	
-	saved = *save;
+	int n, eq, eof = 0;
+
 	n = *state;
-	
-	if (n < 0) {
-		last[0] = '=';
-		n = -n;
-	} else {
-		last[0] = '\0';
-	}
-	
-	last[1] = '\0';
-	
-	/* convert 4 base64 bytes to 3 normal bytes */
+
+	/* if n == -1, then it means we've encountered the end of the base64 stream */
+	if (n == -1)
+		return 0;
+
+	/* decode every quartet into a triplet */
 	while (inptr < inend) {
 		rank = gmime_base64_rank[(c = *inptr++)];
-		if (rank != 0xff) {
+
+		if (rank != 0xFF) {
 			saved = (saved << 6) | rank;
-			last[1] = last[0];
-			last[0] = c;
 			n++;
+
 			if (n == 4) {
+				/* flush our decoded quartet */
 				*outptr++ = saved >> 16;
-				if (last[1] != '=')
-					*outptr++ = saved >> 8;
-				if (last[0] != '=')
-					*outptr++ = saved;
+				*outptr++ = saved >> 8;
+				*outptr++ = saved;
+				saved = 0;
 				n = 0;
 			}
+		} else if (c == '=') {
+			/* Note: this marks the end of the base64 stream. The only octet that can
+			 * appear after this is another '=' (and possibly mailing-list junk). */
+			eof = 1;
+			break;
 		}
 	}
-	
-	*state = last[0] == '=' ? -n : n;
+
+	if (eof) {
+		/* Note: there shouldn't be more than 2 '=' octets at the end of a quartet,
+		 * so if n < 2, then it means the encoder is broken. */
+		if (n > 1) {
+			/* at this point, n should be either 3 or 4 */
+			eq = 4 - n;
+			saved <<= (6 * eq);
+
+			*outptr++ = saved >> 16;
+			if (n > 2)
+				*outptr++ = saved >> 8;
+		}
+
+		n = -1;
+	}
+
+	/* save state */
 	*save = saved;
-	
-	return (outptr - outbuf);
+	*state = n;
+
+	return (size_t) (outptr - outbuf);
 }
 
 
@@ -623,8 +639,6 @@ g_mime_encoding_uuencode_close (const unsigned char *inbuf, size_t inlen, unsign
 			*bufptr++ = GMIME_UUENCODE_CHAR (b2 & 0x3f);
 			
 			uulen += 3;
-			saved = 0;
-			i = 0;
 		}
 	}
 	
@@ -845,10 +859,8 @@ g_mime_encoding_uudecode_step (const unsigned char *inbuf, size_t inlen, unsigne
 				        *outptr++ = gmime_uu_rank[b2] << 6 | gmime_uu_rank[b3];
 					uulen -= 3;
 				} else {
-					if (uulen >= 1) {
-						*outptr++ = gmime_uu_rank[b0] << 2 | gmime_uu_rank[b1] >> 4;
-						uulen--;
-					}
+					*outptr++ = gmime_uu_rank[b0] << 2 | gmime_uu_rank[b1] >> 4;
+					uulen--;
 					
 					if (uulen >= 1) {
 						*outptr++ = gmime_uu_rank[b1] << 4 | gmime_uu_rank[b2] >> 2;

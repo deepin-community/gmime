@@ -1,0 +1,42 @@
+From: Daniel Kahn Gillmor <dkg@fifthhorseman.net>
+Date: Tue, 4 Oct 2022 00:39:57 -0400
+Subject: Avoid clearing a header list if it is being appended to.
+
+I think this resolves a copy/paste error that was introduced in
+4a80ae527df9aa36fe50fac0878207a31d4d6b72.
+
+The logic for `message_add_addresses` is that it is supposed to just
+be appending to a list of addresses, rather than trying to re-merge a
+series of addresses.
+
+It looks like the function's framing was copy/pasted from
+`message_update_addresses`, which does the more complete
+re-build/re-merge.
+
+However, `message_update_addresses` starts with an initial
+`internet_address_list_clear`, and then proceeds to cycle through the
+entire list of headers, trying to collect the ones that match the
+field name, so clearing the address list initially makes sense.
+
+For `message_add_addresses` though, the goal is just to append to the
+current list that already exists, so the list should not be initially
+cleared.
+
+Fixes: #129
+---
+ gmime/gmime-message.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/gmime/gmime-message.c b/gmime/gmime-message.c
+index 1456a85..6d38cc0 100644
+--- a/gmime/gmime-message.c
++++ b/gmime/gmime-message.c
+@@ -269,8 +269,6 @@ message_add_addresses (GMimeMessage *message, GMimeParserOptions *options, GMime
+ 	
+ 	addrlist = message->addrlists[type];
+ 	
+-	internet_address_list_clear (addrlist);
+-	
+ 	if ((value = g_mime_header_get_raw_value (header)))
+ 		_internet_address_list_append_parse (addrlist, options, value, header->offset);
+ 	

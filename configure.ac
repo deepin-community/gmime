@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
-# require autoconf 2.54
-AC_PREREQ(2.54)
+# require autoconf 2.71
+AC_PREREQ([2.71])
 
 # Making releases:
 #   gmime_micro_version += 1;
@@ -12,8 +12,8 @@ AC_PREREQ(2.54)
 #
 m4_define([gmime_major_version], [3])
 m4_define([gmime_minor_version], [2])
-m4_define([gmime_micro_version], [7])
-m4_define([gmime_interface_age], [1])
+m4_define([gmime_micro_version], [13])
+m4_define([gmime_interface_age], [0])
 m4_define([gmime_binary_age],
           [m4_eval(100 * gmime_minor_version + gmime_micro_version)])
 m4_define([gmime_version],
@@ -39,12 +39,11 @@ m4_define([gmime_debug_default],
           [m4_if(m4_eval(gmime_minor_version % 2), [1], [yes], [minimum])])
 
 
-AC_INIT(gmime, [gmime_version],
-        [https://github.com/jstedfast/gmime/issues])
+AC_INIT([gmime],[gmime_version],[https://github.com/jstedfast/gmime/issues])
 
 AC_CONFIG_SRCDIR([README.md])
 AC_CONFIG_MACRO_DIR([m4])
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET
 AC_CANONICAL_HOST
 
 # Save this value here, since automake will set cflags later
@@ -55,7 +54,7 @@ AC_SUBST([ACLOCAL_AMFLAGS], ["-I m4 \${ACLOCAL_FLAGS}"])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])],
          [AC_SUBST([AM_DEFAULT_VERBOSITY], [1])])
 dnl m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
-AM_CONFIG_HEADER([config.h])
+AC_CONFIG_HEADERS([config.h])
 AM_MAINTAINER_MODE
 
 
@@ -132,12 +131,10 @@ fi
 AM_CONDITIONAL(MS_LIB_AVAILABLE, [test x$ms_librarian = xyes])
 
 dnl Checks for programs.
-AC_ISC_POSIX
+AC_SEARCH_LIBS([strerror],[cposix])
 AC_PROG_CC
-AM_PROG_CC_STDC
-AC_C_INLINE
-dnl AC_HEADER_STDC
-AC_STDC_HEADERS
+AC_CHECK_INCLUDES_DEFAULT
+
 dnl AC_ARG_PROGRAM
 AC_PROG_INSTALL
 AC_PROG_LN_S
@@ -147,10 +144,9 @@ AC_PATH_PROG(MV, mv, /bin/mv)
 AC_PATH_PROG(TAR, tar, /bin/tar)
 
 AC_EXEEXT
-AC_PROG_LIBTOOL
+LT_INIT
 dnl when using libtool 2.x create libtool early, because it's used in configure
 m4_ifdef([LT_OUTPUT], [LT_OUTPUT])
-DOLT
 
 dnl Checks for header files.
 AC_CHECK_HEADERS(sys/mman.h)
@@ -169,19 +165,17 @@ AC_TYPE_MODE_T
 
 dnl Check for nfds_t - used by poll()
 AC_MSG_CHECKING(for nfds_t)
-AC_TRY_COMPILE([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 	#include <sys/types.h>
 	#include <poll.h>
-	], [
+	]], [[
 	nfds_t nfds = 1;
 	return nfds;
-	]
-,
-	AC_MSG_RESULT(yes)
-,
-	AC_DEFINE(nfds_t, unsigned long int, [Define to `unsigned long int' if <poll.h> does not define.])
+	
+]])],[AC_MSG_RESULT(yes)
+],[AC_DEFINE(nfds_t, unsigned long int, Define to `unsigned long int` if <poll.h> does not define.)
 	AC_MSG_RESULT(no)
-)
+])
 
 dnl Check for working mmap
 AC_FUNC_MMAP
@@ -205,8 +199,7 @@ AM_CONDITIONAL(ENABLE_GTK_DOC, test "x$enable_gtk_doc" = "xyes")
 
 dnl Check for profiling options
 AC_ARG_ENABLE([profiling],
-              AC_HELP_STRING([--enable-profiling],
-	      [enable profiling compile flags [[default=no]]]),,
+              AS_HELP_STRING([--enable-profiling],[enable profiling compile flags [[default=no]]]),,
               [enable_profiling="no"])
 if test "x$enable_profiling" = "xyes"; then
 # CFLAGS="-O0 -g -pg -fprofile-arcs -ftest-coverage"
@@ -215,8 +208,7 @@ fi
 
 dnl Enable warning spewage on the console
 AC_ARG_ENABLE([warnings],
-              AC_HELP_STRING([--enable-warnings],
-	      [enable g_warning output when invalid MIME is encountered [[default=no]]]),,
+              AS_HELP_STRING([--enable-warnings],[enable g_warning output when invalid MIME is encountered [[default=no]]]),,
 	      [enable_warnings="no"])
 if test "x$enable_warnings" = "xyes"; then
   AC_DEFINE(ENABLE_WARNINGS, 1, [Define if GMime should enable warning output.])
@@ -280,7 +272,6 @@ AS_IF([test x"$glib_native_win32" != xyes], [
     esac
   fi
 ])
-AC_SUBST(ICONV_LIBS)
 
 case $with_libiconv in
   gnu)
@@ -294,20 +285,10 @@ esac
 dnl
 dnl zlib support
 dnl
-PKG_CHECK_MODULES([ZLIB], [zlib], [found_zlib=yes], [found_zlib=no])
-AS_IF([test "x$found_zlib" = "xno"], [
-  AC_CHECK_LIB(z, inflate, [AC_CHECK_HEADER(zlib.h, found_zlib=yes)])
-  if test "x$found_zlib" = "xno" ; then
-    AC_MSG_ERROR([*** Working zlib library and headers not found ***])
-  fi
-  ZLIB_LIBS='-lz'
-  AC_SUBST(ZLIB_LIBS)
-])
+PKG_CHECK_MODULES([ZLIB], [zlib])
 
-dnl We need at *least* glib 2.16.0 for GIO, 2.18.0 for g_set_error_literal, and 2.32.0 for g_mutex_init
-AM_PATH_GLIB_2_0(2.32.0, ,
-		 AC_MSG_ERROR(Cannot find GLIB: Is pkg-config in your path?),
-		 gobject gmodule gthread gio)
+dnl We need at *least* glib 2.32.0 for g_mutex_init, 2.58 for g_time_zone_new_offset, and 2.68 for g_time_zone_new_identifier
+PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.68 gobject-2.0 gio-2.0 gthread-2.0])
 
 CFLAGS_save="$CFLAGS"
 CFLAGS="$CFLAGS -I$srcdir"
@@ -346,98 +327,89 @@ LIBS="$LIBS_save"
 dnl Check for GNU getopt
 AC_CHECK_HEADER(getopt.h)
 AC_MSG_CHECKING(for GNU getopt_long)
-AC_TRY_LINK([
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 	#include <string.h>
 	#include <unistd.h>
 	#define _GNU_SOURCE
 	#include <getopt.h>
-	], [
+	]], [[
 	return getopt_long (0, NULL, NULL, NULL, NULL);
-	]
-,
-	AC_MSG_RESULT([yes])
-	AC_DEFINE(HAVE_GETOPT_H, 1, [Define to 1 if you have the <getopt.h> header with the GNU `getopt_long' function.])
+	
+]])],[AC_MSG_RESULT(yes)
+	AC_DEFINE(HAVE_GETOPT_H, 1, Define to 1 if you have the <getopt.h> header with the GNU `getopt_long` function.)
 	have_getopt="yes"
-,
-	AC_MSG_RESULT([no])
+],[AC_MSG_RESULT(no)
 	have_getopt="no"
-)
+])
 AM_CONDITIONAL(SYSTEM_GETOPT, test "x$have_getopt" = "xyes")
 
 dnl Check for fsync (native win32 doesn't have this)
 AC_MSG_CHECKING(for fsync)
-AC_TRY_LINK([
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 	#include <unistd.h>
-	], [
+	]], [[
 	fsync(0);
-	]
-,
-	AC_MSG_RESULT(yes)
-	AC_DEFINE(HAVE_FSYNC, 1, [Define to 1 if you have the `fsync' function.])
-,
-	AC_MSG_RESULT(no)
-)
+	
+]])],[AC_MSG_RESULT(yes)
+	AC_DEFINE(HAVE_FSYNC, 1, Define to 1 if you have the `fsync` function.)
+],[AC_MSG_RESULT(no)
+])
 
 dnl Check for MAXHOSTNAMELEN
 AC_MSG_CHECKING(for MAXHOSTNAMELEN)
-AC_TRY_COMPILE([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 	#include <sys/param.h>
-	], [
+	]], [[
 	return MAXHOSTNAMELEN;
-	]
-,
-	AC_MSG_RESULT(yes)
-,
-	AC_DEFINE(MAXHOSTNAMELEN, 64, [Define with a value if your <sys/param.h> does not define MAXHOSTNAMELEN])
+	
+]])],[AC_MSG_RESULT(yes)
+],[AC_DEFINE(MAXHOSTNAMELEN, 64, Define with a value if your <sys/param.h> does not define MAXHOSTNAMELEN)
 	AC_MSG_RESULT(no; defined as 64)
-)
+])
 
 dnl Check for domainname member in struct utsname from uname(2)
 AC_MSG_CHECKING(for domainname in struct utsname)
-AC_TRY_COMPILE([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 	#define _GNU_SOURCE
 	#include <sys/utsname.h>
-	], [
+	]], [[
 	struct utsname unam;
 		
 	unam.domainname[0] = '\0';
 
 	return unam.domainname[0];
-	],
-	AC_MSG_RESULT(yes)
-   	AC_DEFINE(HAVE_UTSNAME_DOMAINNAME, 1, [Define if struct utsname has a domainname member])
-,
-	AC_MSG_RESULT(no)
-)
+	]])],[AC_MSG_RESULT(yes)
+   	AC_DEFINE(HAVE_UTSNAME_DOMAINNAME, 1, Define if struct utsname has a domainname member)
+],[AC_MSG_RESULT(no)
+])
 
 dnl *************************************
 dnl *** Checks for large file support ***
 dnl *************************************
 AC_ARG_ENABLE([largefile],
-	      AC_HELP_STRING([--enable-largefile],
-	      [enable support for large files [[default=yes]]]),,
+	      AS_HELP_STRING([--enable-largefile],[enable support for large files [[default=yes]]]),,
 	      [enable_largefile="yes"])
 if test "x$enable_largefile" != "xno"; then
     AC_SYS_LARGEFILE
     AC_CACHE_CHECK([for _LARGEFILE64_SOURCE value needed for large files], ac_cv_largefile64_source,
     [
-	AC_TRY_COMPILE([
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 		#include <sys/types.h>
 		#include <sys/stat.h>
 		#include <fcntl.h>
-	],[
+	]], [[
 		return open ("__o_largefile", O_CREAT | O_RDWR | O_LARGEFILE, 0644);
-	],[
+	]])],[
 		ac_cv_largefile64_source="no"
 	],[
-		AC_TRY_COMPILE([
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 			#define _LARGEFILE64_SOURCE
 			#include <sys/types.h>
 			#include <sys/stat.h>
 			#include <fcntl.h>
-		],[
+		]], [[
 			return open ("__o_largefile", O_CREAT | O_RDWR | O_LARGEFILE, 0644);
-		],[
+		]])],[
 			ac_cv_largefile64_source="yes"
 		],[
 			ac_cv_largefile64_source="unknown"
@@ -480,54 +452,40 @@ CFLAGS="$CFLAGS_save"
 dnl Check for some network functions
 AC_CHECK_FUNCS(gethostname getdomainname getaddrinfo)
 
-dnl ****************************
-dnl *** Checks for libsocket ***
-dnl ****************************
-LIBSOCKET=""
-AC_CHECK_LIB(socket, getaddrinfo, LIBSOCKET="-lsocket")
-
-dnl *************************
-dnl *** Checks for libnsl ***
-dnl *************************
-LIBNSL=""
-AC_CHECK_LIB(nsl, getaddrinfo, LIBNSL="-lnsl")
+AX_LIB_SOCKET_NSL
 
 dnl **************************************************
 dnl *** Checks for GpgME needed for PGP and S/MIME ***
 dnl **************************************************
 AC_ARG_ENABLE([crypto], 
-	      AC_HELP_STRING([--enable-crypto],
-	      [enable PGP and S/MIME support [[default=yes]]]),,
+	      AS_HELP_STRING([--enable-crypto],[enable PGP and S/MIME support [[default=yes]]]),,
 	      [enable_crypto="yes"])
 
-m4_ifdef([AM_PATH_GPGME_PTHREAD], [
 AS_IF([test "x$enable_crypto" = "xyes"], [
-   AM_PATH_GPGME_PTHREAD(1.6.0, enable_crypto="yes (via GpgME)", enable_crypto="no")
-   if test "x$enable_crypto" != "xno"; then
-      AC_DEFINE(ENABLE_CRYPTO, 1, [Define if GMime should enable GpgME PGP and S/MIME support.])
-   fi
-])
+  PKG_CHECK_MODULES([GPGME], [gpgme >= 1.6.0 gpg-error], [enable_crypto="yes (via GpgME)"], [enable_crypto="no"])
+  if test "x$enable_crypto" != "xno"; then
+    AC_DEFINE(ENABLE_CRYPTO, 1, [Define if GMime should enable GpgME PGP and S/MIME support.])
+  fi
 ])
 AM_CONDITIONAL(ENABLE_CRYPTO, test "x$enable_crypto" != "xno")
 
 dnl ******************************
-dnl *** Checks for GNU Libidn2 ***
+dnl *** Checks for GNU libidn2 ***
 dnl ******************************
-AC_ARG_WITH(libidn, AC_HELP_STRING([--with-libidn=[DIR]],
-                                [Support IDN (needs GNU Libidn)]),
+AC_ARG_WITH(libidn, AS_HELP_STRING([--with-libidn=[DIR]],[Support IDN (needs GNU libidn2)]),
   libidn=$withval, libidn=yes)
+AC_MSG_CHECKING([if GNU libidn2 should be used])
+AC_MSG_RESULT($libidn)
 if test "$libidn" != "no" ; then
-  PKG_CHECK_MODULES(LIBIDN, libidn2 >= 2.0.0, [libidn=yes], [libidn=no])
+  PKG_CHECK_MODULES([LIBIDN], [libidn2 >= 2.0.0], [libidn=yes], [libidn=no])
   if test "$libidn" != "yes" ; then
     libidn=no
     AC_MSG_WARN([Libidn not found])
   else
     libidn=yes
-    AC_DEFINE(LIBIDN, 1, [Define to 1 if GNU Libidn should be used.])
+    AC_DEFINE(LIBIDN, 1, [Define to 1 if GNU libidn2 should be used.])
   fi
 fi
-AC_MSG_CHECKING([if Libidn should be used])
-AC_MSG_RESULT($libidn)
 
 dnl Check for GObject introspection and Vala binding generator
 GOBJECT_INTROSPECTION_CHECK([1.30.0])
@@ -602,17 +560,11 @@ AS_IF([ test "x$enable_coverage" = "xyes"], [
 
 dnl Extra libs
 EXTRA_LIBS="$ZLIB_LIBS"
-if test "x$LIBSOCKET" != "x"; then
-	EXTRA_LIBS="$EXTRA_LIBS $LIBSOCKET"
-fi
-if test "x$LIBNSL" != "x"; then
-	EXTRA_LIBS="$EXTRA_LIBS $LIBNSL"
-fi
 if test "x$ICONV_LIBS" != "x"; then
 	EXTRA_LIBS="$EXTRA_LIBS $ICONV_LIBS"
 fi
-if test "x$GPGME_PTHREAD_LIBS" != "x"; then
-	EXTRA_LIBS="$EXTRA_LIBS $GPGME_PTHREAD_LIBS"
+if test "x$GPGME_LIBS" != "x"; then
+	EXTRA_LIBS="$EXTRA_LIBS $GPGME_LIBS"
 fi
 if test "x$LIBIDN_LIBS" != "x"; then
    	EXTRA_LIBS="$EXTRA_LIBS $LIBIDN_LIBS"
@@ -626,10 +578,7 @@ if test -d "${srcdir}/.git"; then
 fi
 LIBS="$LIBS $EXTRA_LIBS"
 
-AC_SUBST(CFLAGS)
-AC_SUBST(LIBS)
-
-GMIME_CFLAGS="$LFS_CFLAGS $GPGME_PTHREAD_CFLAGS $LIBIDN_CFLAGS"
+GMIME_CFLAGS="$LFS_CFLAGS $GPGME_CFLAGS $LIBIDN_CFLAGS"
 GMIME_LIBDIR="-L${libdir}"
 GMIME_INCLUDEDIR="-I${includedir}/gmime-$GMIME_API_VERSION"
 GMIME_LIBS_PRIVATE="$EXTRA_LIBS"
@@ -641,7 +590,7 @@ AC_SUBST(GMIME_LIBS_PRIVATE)
 AC_SUBST(GMIME_CFLAGS)
 AC_SUBST(GMIME_LIBS)
 
-AC_OUTPUT(
+AC_CONFIG_FILES([
 Makefile
 m4/Makefile
 build/Makefile
@@ -661,7 +610,8 @@ tests/Makefile
 tools/Makefile
 gmime.spec
 gmime.pc
-)
+])
+AC_OUTPUT
 
 echo "
 
@@ -680,7 +630,7 @@ Configuration:
   Console warnings:      ${enable_warnings}
   PGP/MIME support:      ${enable_crypto}
   S/MIME support:        ${enable_crypto}
-  libidn support:        ${libidn}
+  libidn2 support:       ${libidn}
 
   GObject introspection: ${enable_introspection}
   Vala bindings:         ${enable_vala}

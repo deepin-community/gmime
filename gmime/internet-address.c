@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -1593,9 +1593,13 @@ domain_literal_parse (GString *str, const char **in)
 	skip_lwsp (&inptr);
 	
 	do {
+		const char *start = inptr;
+
 		while (*inptr && is_dtext (*inptr))
-			g_string_append_c (str, *inptr++);
-		
+			inptr++;
+
+		g_string_append_len (str, start, (size_t) (inptr - start));
+
 		skip_lwsp (&inptr);
 		
 		if (*inptr == '\0')
@@ -2155,4 +2159,34 @@ _internet_address_list_parse (GMimeParserOptions *options, const char *str, gint
 	}
 	
 	return list;
+}
+
+void
+_internet_address_list_append_parse (InternetAddressList *list, GMimeParserOptions *options, const char *str, gint64 offset)
+{
+	const char *inptr = str;
+
+	g_return_if_fail (IS_INTERNET_ADDRESS_LIST (list));
+	g_return_if_fail (str != NULL);
+
+	address_list_parse (list, options, &inptr, FALSE, offset);
+
+	g_mime_event_emit (list->changed, NULL);
+}
+
+
+/**
+ * internet_address_list_append_parse:
+ * @list: a #InternetAddressList
+ * @str: a string containing internet addresses
+ *
+ * Adds all of the addresses in @str to @list.
+ **/
+void
+internet_address_list_append_parse (InternetAddressList *list, GMimeParserOptions *options, const char *str)
+{
+	g_return_if_fail (IS_INTERNET_ADDRESS_LIST (list));
+	g_return_if_fail (str != NULL);
+
+	_internet_address_list_append_parse (list, options, str, -1);
 }

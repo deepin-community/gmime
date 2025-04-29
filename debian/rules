@@ -10,6 +10,7 @@ export CONFIG_SHELL = /bin/sh
 export DEB_LDFLAGS_MAINT_PREPEND = -Wl,--as-needed
 
 override_dh_autoreconf:
+	touch ChangeLog
 	dh_autoreconf --as-needed
 
 override_dh_auto_configure:

@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -541,7 +541,10 @@ g_mime_header_format_references (GMimeHeader *header, GMimeFormatOptions *option
 	int count, i;
 	
 	/* Note: we don't want to break in the middle of msgid tokens as
-	   it seems to break a lot of clients (and servers) */
+	   it seems to break a lot of clients (and servers) 
+	   We also don't want to break before the first msgid because
+	   that would violate RFC5536	   */
+	
 	newline = g_mime_format_options_get_newline (options);
 	refs = g_mime_references_parse (header->options, value);
 	str = g_string_new (header->raw_name);
@@ -552,7 +555,7 @@ g_mime_header_format_references (GMimeHeader *header, GMimeFormatOptions *option
 	for (i = 0; i < count; i++) {
 		msgid = g_mime_references_get_message_id (refs, i);
 		len = strlen (msgid);
-		if (cur > 1 && cur + len + 3 >= GMIME_FOLD_LEN) {
+		if (i > 0 && cur > 1 && cur + len + 3 >= GMIME_FOLD_LEN) {
 			g_string_append (str, newline);
 			g_string_append_c (str, '\t');
 			cur = 1;
@@ -1148,6 +1151,7 @@ g_mime_header_list_prepend (GMimeHeaderList *headers, const char *name, const ch
 	g_hash_table_replace (headers->hash, header->name, header);
 	
 	if (headers->array->len > 0) {
+		args.action = GMIME_HEADER_LIST_CHANGED_ACTION_INSERTED;
 		g_ptr_array_set_size (headers->array, headers->array->len + 1);
 		
 		dest = ((unsigned char *) headers->array->pdata) + sizeof (void *);
@@ -1157,10 +1161,10 @@ g_mime_header_list_prepend (GMimeHeaderList *headers, const char *name, const ch
 		memmove (dest, src, (sizeof (void *) * n));
 		headers->array->pdata[0] = header;
 	} else {
+		args.action = GMIME_HEADER_LIST_CHANGED_ACTION_ADDED;
 		g_ptr_array_add (headers->array, header);
 	}
 	
-	args.action = GMIME_HEADER_LIST_CHANGED_ACTION_ADDED;
 	args.header = header;
 	
 	g_mime_event_emit (headers->changed, &args);
@@ -1385,6 +1389,9 @@ g_mime_header_list_remove (GMimeHeaderList *headers, const char *name)
 	g_mime_event_remove (header->changed, (GMimeEventCallback) header_changed, headers);
 	g_ptr_array_remove_index (headers->array, i);
 	g_hash_table_remove (headers->hash, name);
+
+	args.action = GMIME_HEADER_LIST_CHANGED_ACTION_REMOVED;
+	args.header = header;
 	
 	/* look for another header with the same name... */
 	while (i < headers->array->len) {
@@ -1398,9 +1405,6 @@ g_mime_header_list_remove (GMimeHeaderList *headers, const char *name)
 		
 		i++;
 	}
-	
-	args.action = GMIME_HEADER_LIST_CHANGED_ACTION_REMOVED;
-	args.header = header;
 	
 	g_mime_event_emit (headers->changed, &args);
 	g_object_unref (header);
