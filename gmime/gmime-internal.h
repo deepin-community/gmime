@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -32,6 +32,7 @@ G_BEGIN_DECLS
 
 typedef enum {
 	GMIME_HEADER_LIST_CHANGED_ACTION_ADDED,
+	GMIME_HEADER_LIST_CHANGED_ACTION_INSERTED,
 	GMIME_HEADER_LIST_CHANGED_ACTION_CHANGED,
 	GMIME_HEADER_LIST_CHANGED_ACTION_REMOVED,
 	GMIME_HEADER_LIST_CHANGED_ACTION_CLEARED
@@ -93,6 +94,7 @@ G_GNUC_INTERNAL char *_g_mime_utils_header_decode_phrase (GMimeParserOptions *op
 
 /* InternetAddressList */
 G_GNUC_INTERNAL InternetAddressList *_internet_address_list_parse (GMimeParserOptions *options, const char *str, gint64 offset);
+G_GNUC_INTERNAL void _internet_address_list_append_parse (InternetAddressList *list, GMimeParserOptions *options, const char *str, gint64 offset);
 
 G_END_DECLS
 

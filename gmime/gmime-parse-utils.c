@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -493,8 +493,7 @@ g_mime_decode_addrspec (const char **in)
 		goto exception;
 	}
 	
-	str = addrspec->str;
-	g_string_free (addrspec, FALSE);
+	str = g_string_free (addrspec, FALSE);
 	
 	*in = inptr;
 	

@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -50,6 +50,7 @@ struct _GMimeParserOptions {
 	char **charsets;
 	GMimeParserWarningFunc warning_cb;
 	gpointer warning_user_data;
+	GDestroyNotify notify;
 };
 
 static GMimeParserOptions *default_options = NULL;
@@ -69,6 +70,9 @@ g_mime_parser_options_shutdown (void)
 	if (default_options == NULL)
 		return;
 	
+	if (default_options->notify) {
+		default_options->notify(default_options->warning_user_data);
+	}
 	g_strfreev (default_options->charsets);
 	g_slice_free (GMimeParserOptions, default_options);
 	default_options = NULL;
@@ -131,6 +135,7 @@ g_mime_parser_options_new (void)
 	
 	options->warning_cb = NULL;
 	options->warning_user_data = NULL;
+	options->notify = NULL;
 
 	return options;
 }
@@ -169,6 +174,8 @@ g_mime_parser_options_clone (GMimeParserOptions *options)
 	
 	clone->warning_cb = options->warning_cb;
 	clone->warning_user_data = options->warning_user_data;
+	// We transfer the pointer not ownership. So we don't copy the notify
+	clone->notify = NULL;
 
 	return clone;
 }
@@ -186,6 +193,9 @@ g_mime_parser_options_free (GMimeParserOptions *options)
 	g_return_if_fail (options != NULL);
 	
 	if (options != default_options) {
+		if (options->notify) {
+			options->notify(options->warning_user_data);
+		}
 		g_strfreev (options->charsets);
 		g_slice_free (GMimeParserOptions, options);
 	}
@@ -421,7 +431,7 @@ g_mime_parser_options_set_fallback_charsets (GMimeParserOptions *options, const 
 
 
 /**
- * g_mime_parser_options_get_warning_callback:
+ * g_mime_parser_options_get_warning_callback: (skip)
  * @options: (nullable): a #GMimeParserOptions or %NULL
  *
  * Gets callback function which is called if the parser detects any issues.
@@ -440,14 +450,20 @@ g_mime_parser_options_get_warning_callback (GMimeParserOptions *options)
  * @options: a #GMimeParserOptions
  * @warning_cb: a #GMimeParserWarningFunc or %NULL to clear the callback
  * @user_data: data passed to the warning callback function
+ * @notify: callback function ran on destruction
  *
  * Registers the callback function being called if the parser detects any issues.
  **/
 void
-g_mime_parser_options_set_warning_callback (GMimeParserOptions *options, GMimeParserWarningFunc warning_cb, gpointer user_data)
+g_mime_parser_options_set_warning_callback (GMimeParserOptions *options, GMimeParserWarningFunc warning_cb, gpointer user_data, GDestroyNotify notify)
 {
 	g_return_if_fail (options != NULL);
+
+	if (options->notify) {
+		options->notify(options->warning_user_data);
+	}
 	
 	options->warning_cb = warning_cb;
 	options->warning_user_data = user_data;
+	options->notify = notify;
 }

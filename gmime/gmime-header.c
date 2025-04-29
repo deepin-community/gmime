@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -75,6 +75,7 @@ static struct {
 	{ "Content-Disposition",         g_mime_header_format_content_disposition },
 	{ "Content-Id",                  g_mime_header_format_message_id          },
 	{ "Disposition-Notification-To", g_mime_header_format_addrlist            },
+	{ "Newsgroups",                  g_mime_header_format_newsgroups          },
 };
 
 
@@ -244,7 +245,7 @@ g_mime_header_get_value (GMimeHeader *header)
  * @header: a #GMimeHeader
  * @options: (nullable): a #GMimeFormatOptions or %NULL
  * @value: the new header value
- * @charset: a charset
+ * @charset: (nullable): a charset
  *
  * Sets the header's decoded value.
  **/
@@ -541,7 +542,10 @@ g_mime_header_format_references (GMimeHeader *header, GMimeFormatOptions *option
 	int count, i;
 	
 	/* Note: we don't want to break in the middle of msgid tokens as
-	   it seems to break a lot of clients (and servers) */
+	   it seems to break a lot of clients (and servers) 
+	   We also don't want to break before the first msgid because
+	   that would violate RFC5536	   */
+	
 	newline = g_mime_format_options_get_newline (options);
 	refs = g_mime_references_parse (header->options, value);
 	str = g_string_new (header->raw_name);
@@ -552,7 +556,7 @@ g_mime_header_format_references (GMimeHeader *header, GMimeFormatOptions *option
 	for (i = 0; i < count; i++) {
 		msgid = g_mime_references_get_message_id (refs, i);
 		len = strlen (msgid);
-		if (cur > 1 && cur + len + 3 >= GMIME_FOLD_LEN) {
+		if (i > 0 && cur > 1 && cur + len + 3 >= GMIME_FOLD_LEN) {
 			g_string_append (str, newline);
 			g_string_append_c (str, '\t');
 			cur = 1;
@@ -903,6 +907,50 @@ g_mime_header_format_received (GMimeHeader *header, GMimeFormatOptions *options,
 
 
 /**
+ * g_mime_header_format_newsgroups:
+ * @header: a #GMimeHeader
+ * @options: (nullable): a #GMimeFormatOptions or %NULL
+ * @value: a Newsgroups header value
+ * @charset: a charset (note: unused)
+ *
+ * Parses the @value and then re-formats it to conform to the formatting options,
+ * folding the value if necessary.
+ *
+ * Returns: a newly allocated string containing the reformatted value.
+ **/
+char *
+g_mime_header_format_newsgroups (GMimeHeader *header, GMimeFormatOptions *options, const char *value, const char *charset)
+{
+	/* https://www.rfc-editor.org/rfc/rfc5536#section-3.1.4
+	 *
+	 * The Newsgroups header field specifies the newsgroup(s) to which the
+	 * article is posted.
+	 *
+	 * newsgroups      =  "Newsgroups:" SP newsgroup-list CRLF
+	 *
+	 * newsgroup-list  =  *WSP newsgroup-name
+	 *                    *( [FWS] "," [FWS] newsgroup-name ) *WSP
+	 *
+	 * newsgroup-name  =  component *( "." component )
+	 *
+	 * component       =  1*component-char
+	 *
+	 * component-char  =  ALPHA / DIGIT / "+" / "-" / "_"
+	 *
+	 * Not all servers support optional FWS in the list of newsgroups.  In
+	 * particular, folding the Newsgroups header field over several lines
+	 * has been shown to harm propagation significantly.  Optional FWS in
+	 * the <newsgroup-list> SHOULD NOT be generated, but MUST be accepted.
+	 *
+	 * Based on this, it seems better to avoid reformatting the value at all.
+	 */
+	const char *newline = g_mime_format_options_get_newline (options);
+	
+	return g_strdup_printf (" %s%s", value, newline);
+}
+
+
+/**
  * g_mime_header_format_default:
  * @header: a #GMimeHeader
  * @options: (nullable): a #GMimeFormatOptions or %NULL
@@ -1126,7 +1174,7 @@ g_mime_header_list_contains (GMimeHeaderList *headers, const char *name)
  * @headers: a #GMimeHeaderList
  * @name: header name
  * @value: header value
- * @charset: a charset
+ * @charset: (nullable): a charset
  *
  * Prepends a header. If @value is %NULL, a space will be set aside
  * for it (useful for setting the order of headers before values can
@@ -1148,6 +1196,7 @@ g_mime_header_list_prepend (GMimeHeaderList *headers, const char *name, const ch
 	g_hash_table_replace (headers->hash, header->name, header);
 	
 	if (headers->array->len > 0) {
+		args.action = GMIME_HEADER_LIST_CHANGED_ACTION_INSERTED;
 		g_ptr_array_set_size (headers->array, headers->array->len + 1);
 		
 		dest = ((unsigned char *) headers->array->pdata) + sizeof (void *);
@@ -1157,10 +1206,10 @@ g_mime_header_list_prepend (GMimeHeaderList *headers, const char *name, const ch
 		memmove (dest, src, (sizeof (void *) * n));
 		headers->array->pdata[0] = header;
 	} else {
+		args.action = GMIME_HEADER_LIST_CHANGED_ACTION_ADDED;
 		g_ptr_array_add (headers->array, header);
 	}
 	
-	args.action = GMIME_HEADER_LIST_CHANGED_ACTION_ADDED;
 	args.header = header;
 	
 	g_mime_event_emit (headers->changed, &args);
@@ -1193,7 +1242,7 @@ _g_mime_header_list_append (GMimeHeaderList *headers, const char *name, const ch
  * @headers: a #GMimeHeaderList
  * @name: header name
  * @value: header value
- * @charset: a charset
+ * @charset: (nullable): a charset
  *
  * Appends a header. If @value is %NULL, a space will be set aside for it
  * (useful for setting the order of headers before values can be
@@ -1283,7 +1332,7 @@ _g_mime_header_list_set (GMimeHeaderList *headers, const char *name, const char 
  * @headers: a #GMimeHeaderList
  * @name: header name
  * @value: header value
- * @charset: a charset
+ * @charset: (nullable): a charset
  *
  * Set the value of the specified header. If @value is %NULL and the
  * header, @name, had not been previously set, a space will be set
@@ -1385,6 +1434,9 @@ g_mime_header_list_remove (GMimeHeaderList *headers, const char *name)
 	g_mime_event_remove (header->changed, (GMimeEventCallback) header_changed, headers);
 	g_ptr_array_remove_index (headers->array, i);
 	g_hash_table_remove (headers->hash, name);
+
+	args.action = GMIME_HEADER_LIST_CHANGED_ACTION_REMOVED;
+	args.header = header;
 	
 	/* look for another header with the same name... */
 	while (i < headers->array->len) {
@@ -1398,9 +1450,6 @@ g_mime_header_list_remove (GMimeHeaderList *headers, const char *name)
 		
 		i++;
 	}
-	
-	args.action = GMIME_HEADER_LIST_CHANGED_ACTION_REMOVED;
-	args.header = header;
 	
 	g_mime_event_emit (headers->changed, &args);
 	g_object_unref (header);

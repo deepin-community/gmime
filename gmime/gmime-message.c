@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -260,10 +260,26 @@ static const char *message_headers[] = {
 };
 
 static void
+message_add_addresses (GMimeMessage *message, GMimeParserOptions *options, GMimeHeader *header, GMimeAddressType type)
+{
+	InternetAddressList *addrlist;
+	const char *value;
+	
+	block_changed_event (message, type);
+	
+	addrlist = message->addrlists[type];
+	
+	if ((value = g_mime_header_get_raw_value (header)))
+		_internet_address_list_append_parse (addrlist, options, value, header->offset);
+	
+	unblock_changed_event (message, type);
+}
+
+static void
 message_update_addresses (GMimeMessage *message, GMimeParserOptions *options, GMimeAddressType type)
 {
 	GMimeHeaderList *headers = ((GMimeObject *) message)->headers;
-	InternetAddressList *addrlist, *list;
+	InternetAddressList *addrlist;
 	const char *name, *value;
 	GMimeHeader *header;
 	int count, i;
@@ -282,19 +298,28 @@ message_update_addresses (GMimeMessage *message, GMimeParserOptions *options, GM
 		if (g_ascii_strcasecmp (address_types[type].name, name) != 0)
 			continue;
 		
-		if ((value = g_mime_header_get_raw_value (header))) {
-			if ((list = _internet_address_list_parse (options, value, header->offset))) {
-				internet_address_list_append (addrlist, list);
-				g_object_unref (list);
-			}
-		}
+		if ((value = g_mime_header_get_raw_value (header)))
+			_internet_address_list_append_parse (addrlist, options, value, header->offset);
 	}
 	
 	unblock_changed_event (message, type);
 }
 
+static gboolean
+header_was_appended (GMimeObject *object, GMimeHeaderListChangedAction action, GMimeHeader *header)
+{
+	// Note: This is a hack until we can have a message_header_inserted() API.
+	if (action == GMIME_HEADER_LIST_CHANGED_ACTION_ADDED) {
+		int count = g_mime_header_list_get_count (object->headers);
+		GMimeHeader *last = g_mime_header_list_get_header_at (object->headers, count - 1);
+		return header == last;
+	}
+
+	return FALSE;
+}
+
 static void
-process_header (GMimeObject *object, GMimeHeader *header)
+process_header (GMimeObject *object, GMimeHeaderListChangedAction action, GMimeHeader *header)
 {
 	GMimeParserOptions *options = _g_mime_header_list_get_options (object->headers);
 	GMimeMessage *message = (GMimeMessage *) object;
@@ -310,22 +335,40 @@ process_header (GMimeObject *object, GMimeHeader *header)
 	
 	switch (i) {
 	case HEADER_SENDER:
-		message_update_addresses (message, options, GMIME_ADDRESS_TYPE_SENDER);
+		if (header_was_appended (object, action, header))
+			message_add_addresses (message, options, header, GMIME_ADDRESS_TYPE_SENDER);
+		else
+			message_update_addresses (message, options, GMIME_ADDRESS_TYPE_SENDER);
 		break;
 	case HEADER_FROM:
-		message_update_addresses (message, options, GMIME_ADDRESS_TYPE_FROM);
+		if (header_was_appended (object, action, header))
+			message_add_addresses (message, options, header, GMIME_ADDRESS_TYPE_FROM);
+		else
+			message_update_addresses (message, options, GMIME_ADDRESS_TYPE_FROM);
 		break;
 	case HEADER_REPLY_TO:
-		message_update_addresses (message, options, GMIME_ADDRESS_TYPE_REPLY_TO);
+		if (header_was_appended (object, action, header))
+			message_add_addresses (message, options, header, GMIME_ADDRESS_TYPE_REPLY_TO);
+		else
+			message_update_addresses (message, options, GMIME_ADDRESS_TYPE_REPLY_TO);
 		break;
 	case HEADER_TO:
-		message_update_addresses (message, options, GMIME_ADDRESS_TYPE_TO);
+		if (header_was_appended (object, action, header))
+			message_add_addresses (message, options, header, GMIME_ADDRESS_TYPE_TO);
+		else
+			message_update_addresses (message, options, GMIME_ADDRESS_TYPE_TO);
 		break;
 	case HEADER_CC:
-		message_update_addresses (message, options, GMIME_ADDRESS_TYPE_CC);
+		if (header_was_appended (object, action, header))
+			message_add_addresses (message, options, header, GMIME_ADDRESS_TYPE_CC);
+		else
+			message_update_addresses (message, options, GMIME_ADDRESS_TYPE_CC);
 		break;
 	case HEADER_BCC:
-		message_update_addresses (message, options, GMIME_ADDRESS_TYPE_BCC);
+		if (header_was_appended (object, action, header))
+			message_add_addresses (message, options, header, GMIME_ADDRESS_TYPE_BCC);
+		else
+			message_update_addresses (message, options, GMIME_ADDRESS_TYPE_BCC);
 		break;
 	case HEADER_SUBJECT:
 		g_free (message->subject);
@@ -357,7 +400,7 @@ process_header (GMimeObject *object, GMimeHeader *header)
 static void
 message_header_added (GMimeObject *object, GMimeHeader *header)
 {
-	process_header (object, header);
+	process_header (object, GMIME_HEADER_LIST_CHANGED_ACTION_ADDED, header);
 	
 	GMIME_OBJECT_CLASS (parent_class)->header_added (object, header);
 }
@@ -365,7 +408,7 @@ message_header_added (GMimeObject *object, GMimeHeader *header)
 static void
 message_header_changed (GMimeObject *object, GMimeHeader *header)
 {
-	process_header (object, header);
+	process_header (object, GMIME_HEADER_LIST_CHANGED_ACTION_CHANGED, header);
 	
 	GMIME_OBJECT_CLASS (parent_class)->header_changed (object, header);
 }
@@ -491,7 +534,7 @@ write_headers_to_stream (GMimeObject *object, GMimeFormatOptions *options, GMime
 				
 				index++;
 			} else {
-				if (!g_mime_format_options_is_hidden_header (options, header->name)) {
+				if (!g_mime_format_options_is_hidden_header (options, body_header->name)) {
 					if ((nwritten = g_mime_header_write_to_stream (body_header, options, filtered)) == -1) {
 						g_object_unref (filtered);
 						return -1;
@@ -817,7 +860,7 @@ bcc_list_changed (InternetAddressList *list, gpointer args, GMimeMessage *messag
  * g_mime_message_add_mailbox:
  * @message: A #GMimeMessage
  * @type: A #GMimeAddressType
- * @name: The name of the mailbox (or %NULL)
+ * @name: (nullable): The name of the mailbox (or %NULL)
  * @addr: The address of the mailbox
  *
  * Add a mailbox of a chosen type to the MIME message.
@@ -899,7 +942,7 @@ g_mime_message_get_all_recipients (GMimeMessage *message)
  * g_mime_message_set_subject:
  * @message: A #GMimeMessage
  * @subject: Subject string
- * @charset: The charset to use for encoding the subject or %NULL to use the default
+ * @charset: (nullable): The charset to use for encoding the subject or %NULL to use the default
  *
  * Set the subject of a @message.
  *
@@ -921,8 +964,8 @@ g_mime_message_set_subject (GMimeMessage *message, const char *subject, const ch
  *
  * Gets the subject of the @message.
  *
- * Returns: the subject of the @message in a form suitable for display
- * or %NULL if no subject is set. If not %NULL, the returned string
+ * Returns: (nullable): the subject of the @message in a form suitable for
+ * display or %NULL if no subject is set. If not %NULL, the returned string
  * will be in UTF-8.
  **/
 const char *
@@ -960,7 +1003,8 @@ g_mime_message_set_date (GMimeMessage *message, GDateTime *date)
  * 
  * Gets the parsed date and time value from the Date header.
  *
- * Returns: a #GDateTime on success or %NULL if the date could not be parsed.
+ * Returns: (nullable) (transfer none): a #GDateTime on success or %NULL if
+ * the date could not be parsed.
  **/
 GDateTime *
 g_mime_message_get_date (GMimeMessage *message)
@@ -998,7 +1042,7 @@ g_mime_message_set_message_id (GMimeMessage *message, const char *message_id)
  *
  * Gets the Message-Id header of @message.
  *
- * Returns: the Message-Id of a message.
+ * Returns: (nullable): the Message-Id of a message, or %NULL if not specified.
  **/
 const char *
 g_mime_message_get_message_id (GMimeMessage *message)
@@ -1015,7 +1059,8 @@ g_mime_message_get_message_id (GMimeMessage *message)
  *
  * Gets the toplevel MIME part contained within @message.
  *
- * Returns: (transfer none): the toplevel MIME part of @message.
+ * Returns: (nullable) (transfer none): the toplevel MIME part of @message, or
+ * %NULL if none is present.
  **/
 GMimeObject *
 g_mime_message_get_mime_part (GMimeMessage *message)
@@ -1149,8 +1194,9 @@ multipart_guess_body (GMimeMultipart *multipart)
  * Attempts to identify the MIME part containing the body of the
  * message.
  *
- * Returns: (transfer none): a #GMimeObject containing the textual
- * content that appears to be the main body of the message.
+ * Returns: (nullable) (transfer none): a #GMimeObject containing the textual
+ * content that appears to be the main body of the message, or %NULL if no
+ * body part has been set.
  *
  * Note: This function is NOT guaranteed to always work as it
  * makes some assumptions that are not necessarily true. It is
@@ -1178,7 +1224,7 @@ g_mime_message_get_body (GMimeMessage *message)
 /**
  * g_mime_message_get_autocrypt_header:
  * @message: a #GMimeMessage object.
- * @now: a #GDateTime object, or %NULL
+ * @now: (nullable): a #GDateTime object, or %NULL
  *
  * Creates a new #GMimeAutocryptHeader based on the relevant Autocrypt
  * header associated with the sender of an e-mail message.
@@ -1206,7 +1252,7 @@ g_mime_message_get_body (GMimeMessage *message)
  * - the Date: header of the message or 
  * - @now (or the current time, if @now is %NULL)
  *
- * Returns: (transfer full): a new #GMimeAutocryptHeader object,
+ * Returns: (nullable) (transfer full): a new #GMimeAutocryptHeader object,
  * or %NULL if the message should be ignored for purposes of
  * Autocrypt.
  **/
@@ -1245,7 +1291,7 @@ g_mime_message_get_autocrypt_header (GMimeMessage *message, GDateTime *now)
 /**
  * g_mime_message_get_autocrypt_gossip_headers_from_inner_part:
  * @message: a #GMimeMessage object.
- * @now: a #GDateTime object, or %NULL
+ * @now: (nullable): a #GDateTime object, or %NULL
  * @inner_part: a #GMimeObject which is the cleartext part of the inner message
  *
  * Creates a new #GMimeAutocryptHeaderList of relevant headers of the
@@ -1287,7 +1333,8 @@ g_mime_message_get_autocrypt_header (GMimeMessage *message, GDateTime *now)
  * - the Date: header of the message or 
  * - @now (or the current time, if @now is %NULL)
  * 
- * Returns: (transfer full): a new #GMimeAutocryptHeaderList object, or %NULL on error.
+ * Returns: (nullable) (transfer full): a new #GMimeAutocryptHeaderList object,
+ * or %NULL on error.
  **/
 GMimeAutocryptHeaderList *
 g_mime_message_get_autocrypt_gossip_headers_from_inner_part (GMimeMessage *message, GDateTime *now, GMimeObject *inner_part)
@@ -1317,9 +1364,9 @@ g_mime_message_get_autocrypt_gossip_headers_from_inner_part (GMimeMessage *messa
 /**
  * g_mime_message_get_autocrypt_gossip_headers:
  * @message: a #GMimeMessage object, which is expected to be encrypted.
- * @now: a #GDateTime object, or %NULL
+ * @now: (nullable): a #GDateTime object, or %NULL
  * @flags: a #GMimeDecryptFlags, to be used during decryption
- * @session_key: session key to use or %NULL
+ * @session_key: (nullable): session key to use or %NULL
  * @err: a #GError (can be %NULL)
  *
  * Creates a new #GMimeAutocryptHeaderList of relevant headers of the
@@ -1339,7 +1386,7 @@ g_mime_message_get_autocrypt_gossip_headers_from_inner_part (GMimeMessage *messa
  * will be set on @err to provide information about the decryption
  * failure.
  *
- * Returns: (transfer full): a new #GMimeAutocryptHeaderList object,
+ * Returns: (nullable) (transfer full): a new #GMimeAutocryptHeaderList object,
  * or %NULL on error.
  **/
 GMimeAutocryptHeaderList *g_mime_message_get_autocrypt_gossip_headers (GMimeMessage *message,

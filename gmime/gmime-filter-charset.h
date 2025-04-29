@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -42,7 +42,7 @@ typedef struct _GMimeFilterCharsetClass GMimeFilterCharsetClass;
  * @parent_object: parent #GMimeFilter
  * @from_charset: charset that the filter is converting from
  * @to_charset: charset the filter is converting to
- * @cd: charset conversion state
+ * @cd: (type gpointer): charset conversion state
  *
  * A filter to convert between charsets.
  **/

@@ -1,3 +1,76 @@
+gmime (3.2.15+dfsg-1) unstable; urgency=medium
+
+  * New Upstream Release (Closes: #1080110)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Tue, 03 Sep 2024 16:17:47 -0400
+
+gmime (3.2.14+dfsg-2) unstable; urgency=medium
+
+  * Acknowledge NMU, merge changes from 3.2.13+dfsg-2.1.
+    Thanks, Steve Langasek!
+  * wrap-and-sort -ast
+  * Standards-Version: bump to 4.7,0 (no changes needed)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Thu, 23 May 2024 15:56:37 -0400
+
+gmime (3.2.14+dfsg-1) UNRELEASED; urgency=medium
+
+  * New upstream release (Closes: #1046738)
+  * Standards-Version: move to 4.6.2 (no changes needed)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Wed, 13 Sep 2023 10:57:34 -0400
+
+gmime (3.2.13+dfsg-2.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Rename libraries for 64-bit time_t transition.  Closes: #1062172
+
+ -- Steve Langasek <vorlon@debian.org>  Wed, 28 Feb 2024 18:41:45 +0000
+
+gmime (3.2.13+dfsg-2) unstable; urgency=medium
+
+  * avoid clearing header lists when appending
+  * ship README.md (Closes: #1007099)
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Tue, 04 Oct 2022 01:25:39 -0400
+
+gmime (3.2.13+dfsg-1) unstable; urgency=medium
+
+  * new upstream version (repacked without RFCs or problematic mbox)
+  * gbp: use debian/unstable instead of debian/sid
+  * Remove constraints unnecessary since buster (thanks, deb-scrub-obsolete!)
+  * bump libglib2.0-dev dependency to 2.68, following upstream
+  * build with libidn2-dev
+  * Standards-Version: bump to 4.6.1 (no changes needed)
+  * symbols: add new internet_address_list_append_parse (but see also
+    https://github.com/jstedfast/gmime/issues/128)
+  * lintian-overrides: update for new structure of
+    very-long-line-length-in-source-file, and override source-is-missing
+    for test suite
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Mon, 26 Sep 2022 10:41:25 -0400
+
+gmime (3.2.9+dfsg-1) unstable; urgency=medium
+
+  * New upstream release
+
+  [ Debian Janitor ]
+  * Remove constraints unnecessary since buster
+
+  [ Daniel Kahn Gillmor ]
+  * move to debhelper 13
+  * Standards-Version: bump to 4.6.0 (no changes needed)
+  * change packaging branch from debian/master to debian/sid
+  * d/watch: look for github tags
+  * since building 3.2.9 from git tarball, no ChangeLog is present upstream
+  * d/symbols: add g_mime_object_write_object_to_stream
+  * d/copyright: update dates
+  * lintian-override about long lines in test suite data
+  * avoid non-dfsg files
+  * update manpages for gmime-uu{en,de}code
+
+ -- Daniel Kahn Gillmor <dkg@fifthhorseman.net>  Wed, 09 Mar 2022 02:28:30 -0500
+
 gmime (3.2.7-1) unstable; urgency=medium
 
   * New upstream release

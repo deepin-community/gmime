@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -332,10 +332,26 @@ url_web_end (const char *in, const char *pos, const char *inend, urlmatch_t *mat
 	
 	/* find the end of the domain */
 	if (is_digit (*inptr)) {
-		goto ip_literal2;
+		/* this is either an IP literal or it could be a subdomain that begins with a numeric character(s) */
+		save = inptr;
+		while (inptr < inend && is_digit (*inptr))
+			inptr++;
+		
+		if (inptr < inend && *inptr == '.') {
+			inptr = save;
+			goto ip_literal2;
+		}
+		
+		if (is_atom (*inptr)) {
+			inptr = save;
+			goto atom;
+		}
+
+		return FALSE;
 	} else if (is_atom (*inptr)) {
 		/* might be a domain or user@domain */
 		save = inptr;
+	atom:
 		while (inptr < inend) {
 			if (!is_atom (*inptr))
 				break;
@@ -415,7 +431,7 @@ url_web_end (const char *in, const char *pos, const char *inend, urlmatch_t *mat
 			do {
 				if (end[1] != ':') {
 					inptr = end + 1;
-					if ((val = strtol (inptr, &end, 16)) < 0)
+					if ((val = strtol (inptr, &end, 16)) < 0 || val > 65535)
 						return FALSE;
 				} else {
 					inptr = end;
@@ -503,6 +519,7 @@ url_web_end (const char *in, const char *pos, const char *inend, urlmatch_t *mat
 			
 			/* we have a '/' so there could be a path - fall through */
 		case '/': /* we've detected a path component to our url */
+		case '?': /* we've detected params component to our url */
 			inptr++;
 			
 			while (inptr < inend && is_urlsafe (*inptr) && *inptr != close_brace)

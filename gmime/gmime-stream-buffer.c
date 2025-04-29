@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -366,7 +366,7 @@ stream_seek_block_read (GMimeStream *stream, gint64 offset, GMimeSeekWhence when
 	case GMIME_STREAM_SEEK_END:
 		if (stream->bound_end == -1) {
 			/* gotta do this the slow way */
-			if ((real = g_mime_stream_seek (buffer->source, offset, GMIME_STREAM_SEEK_END) == -1))
+			if ((real = g_mime_stream_seek (buffer->source, offset, GMIME_STREAM_SEEK_END)) == -1)
 				return -1;
 			
 			stream->position = real;
@@ -518,7 +518,7 @@ g_mime_stream_buffer_new (GMimeStream *source, GMimeStreamBufferMode mode)
 /**
  * g_mime_stream_buffer_gets:
  * @stream: stream
- * @buf: line buffer
+ * @buf: (array length=max) (element-type guint8): line buffer
  * @max: max length of a line
  *
  * Reads in at most one less than @max characters from @stream and

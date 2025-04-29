@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -162,6 +162,10 @@ static struct {
 	{ "A Group(Some people):Chris Jones <c@(Chris's host.)public.example>, joe@example.org, John <jdoe@one.test> (my dear friend); (the end of the group)", NULL,
 	  "A Group: Chris Jones <c@public.example>, joe@example.org, John <jdoe@one.test>;",
 	  "A Group: Chris Jones <c@public.example>, joe@example.org, John <jdoe@one.test>;" },
+	/* odd number of double quotes in rfc-2047 encoded display-name */
+	{ "=?UTF-8?Q?foo=20=22=20bar?= <test@mail.net>", "utf-8",
+	  "\"foo \\\" bar\" <test@mail.net>",
+	  "\"foo \\\" bar\" <test@mail.net>"},
 	/* The following tests cases are meant to test forgivingness
 	 * of the parser when it encounters unquoted specials in the
 	 * name component */
@@ -377,14 +381,14 @@ test_date_parser (void)
 			tz_offset *= sign;
 			
 			if (time != dates[i].date)
-				throw (exception_new ("time_t's do not match: %ld vs %ld", time, dates[i].date));
+				throw (exception_new ("time_t's do not match: actual: %ld; expected: %ld", time, dates[i].date));
 			
 			if (tz_offset != dates[i].tzone)
 				throw (exception_new ("timezones do not match"));
 			
 			buf = g_mime_utils_header_format_date (date);
 			if (strcmp (dates[i].out, buf) != 0) {
-				newex = exception_new ("date strings do not match: %s vs %s", buf, dates[i].out);
+				newex = exception_new ("date strings do not match: actual: %s; expected: %s", buf, dates[i].out);
 				g_free (buf);
 				throw (newex);
 			}
@@ -408,6 +412,9 @@ static struct {
 	  "blah:\tI am broken",
 	  "blah:\tI am broken" },
 #endif
+	{ "=?UTF-8?B?SGVsbG8=?= =?UTF-8?B?IHdvcmxk?=",
+	  "Hello world",
+	  "Hello world" },
 	{ "=?iso-8859-1?Q?Copy_of_Rapport_fra_Norges_R=E5fisklag=2Edoc?=",
 	  "Copy of Rapport fra Norges R\xc3\xa5" "fisklag.doc",
 	  "Copy of Rapport fra Norges =?iso-8859-1?q?R=E5fisklag=2Edoc?=" },
@@ -481,7 +488,7 @@ test_rfc2047 (GMimeParserOptions *options, gboolean test_broken)
 		try {
 			dec = g_mime_utils_header_decode_text (options, rfc2047_text[i].input);
 			if (strcmp (rfc2047_text[i].decoded, dec) != 0)
-				throw (exception_new ("decoded text does not match: %s", dec));
+				throw (exception_new ("decoded text does not match: actual=\"%s\", expected=\"%s\"", dec, rfc2047_text[i].decoded));
 			
 			enc = g_mime_utils_header_encode_text (format, dec, NULL);
 			if (strcmp (rfc2047_text[i].encoded, enc) != 0)

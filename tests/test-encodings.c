@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -142,9 +142,10 @@ test_base64_decode_patterns (void)
 		
 		if (n != len)
 			testsuite_check_failed ("base64_encoded_patterns[%u] failed: decoded lengths did not match (expected: %zu, was: %zu)", i, len, n);
-		else if (strncmp (expected, output, n) != 0)
-			testsuite_check_failed ("base64_encoded_patterns[%u] failed: decoded values did not match", i);
-		else
+		else if (strncmp (expected, output, n) != 0) {
+			output[n] = 0;
+			testsuite_check_failed ("base64_encoded_patterns[%u] failed: decoded values did not match: %s", i, output);
+		} else
 			testsuite_check_passed ();
 		
 		g_mime_encoding_reset (&decoder);

@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -109,10 +109,10 @@ typedef enum {
  **/
 typedef enum {
 	GMIME_ENCRYPT_NONE          = 0,
-	GMIME_ENCRYPT_ALWAYS_TRUST  = 1,
-	GMIME_ENCRYPT_NO_COMPRESS   = 16,
-	GMIME_ENCRYPT_SYMMETRIC     = 32,
-	GMIME_ENCRYPT_THROW_KEYIDS  = 64,
+	GMIME_ENCRYPT_ALWAYS_TRUST  = 1 << 0,
+	GMIME_ENCRYPT_NO_COMPRESS   = 1 << 4,
+	GMIME_ENCRYPT_SYMMETRIC     = 1 << 5,
+	GMIME_ENCRYPT_THROW_KEYIDS  = 1 << 6,
 } GMimeEncryptFlags;
 
 

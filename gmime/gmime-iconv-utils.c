@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -49,7 +49,7 @@
 
 /**
  * g_mime_iconv_strndup: (skip)
- * @cd: conversion descriptor
+ * @cd: (type gpointer): conversion descriptor
  * @str: string in source charset
  * @n: number of bytes to convert
  *
@@ -152,7 +152,7 @@ g_mime_iconv_strndup (iconv_t cd, const char *str, size_t n)
 
 /**
  * g_mime_iconv_strdup: (skip)
- * @cd: conversion descriptor
+ * @cd: (type gpointer): conversion descriptor
  * @str: string in source charset
  *
  * Allocates a new string buffer containing @str converted to the

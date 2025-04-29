@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -718,9 +718,9 @@ g_string_append_len_quoted (GString *str, const char *text, size_t len)
 /**
  * g_mime_param_list_encode:
  * @list: a #GMimeParamList
- * @options: a #GMimeFormatOptions or %NULL
+ * @options: (nullable): a #GMimeFormatOptions or %NULL
  * @fold: %TRUE if the parameter list should be folded; otherwise, %FALSE
- * @str: the output string buffer
+ * @str: (out): the output string buffer
  *
  * Encodes the parameter list into @str, folding lines if required.
  **/
@@ -792,7 +792,7 @@ g_mime_param_list_encode (GMimeParamList *list, GMimeFormatOptions *options, gbo
 		
 		if (toolong && method == GMIME_PARAM_ENCODING_METHOD_RFC2231) {
 			/* we need to do special rfc2184 parameter wrapping */
-			size_t maxlen = GMIME_FOLD_LEN - (nlen + 6);
+			size_t maxlen = MAX (GMIME_FOLD_LEN - (nlen + 6), 3);
 			char *inend;
 			int n = 0;
 			
@@ -1335,9 +1335,12 @@ decode_param_list (GMimeParserOptions *options, const char *in, gint64 offset)
 	t = (struct _rfc2184_param *) &list;
 	rfc2184_hash = g_hash_table_new (g_mime_strcase_hash, g_mime_strcase_equal);
 	
-	skip_cfws (&inptr);
-	
 	do {
+		skip_cfws (&inptr);
+		
+		if (*inptr == '\0')
+			break;
+		
 		/* invalid format? */
 		if (!decode_param (options, &inptr, &name, &value, &id, &rfc2047_charset, &encoded, &method, offset)) {
 			skip_cfws (&inptr);

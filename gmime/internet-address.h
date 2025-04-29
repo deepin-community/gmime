@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -214,6 +214,7 @@ char *internet_address_list_to_string (InternetAddressList *list, GMimeFormatOpt
 void internet_address_list_encode (InternetAddressList *list, GMimeFormatOptions *options, GString *str);
 
 InternetAddressList *internet_address_list_parse (GMimeParserOptions *options, const char *str);
+void internet_address_list_append_parse (InternetAddressList *list, GMimeParserOptions *options, const char *str);
 
 G_END_DECLS
 

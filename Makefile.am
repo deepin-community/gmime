@@ -13,7 +13,7 @@ SUBDIRS += tools .
 # build documentation when doing distcheck
 DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc --enable-introspection
 
-DISTCLEANFILES = iconv-detect.h gmime-$(GMIME_API_VERSION).pc config.lt doltcompile doltlibtool
+DISTCLEANFILES = iconv-detect.h gmime-$(GMIME_API_VERSION).pc config.lt
 
 EXTRA_DIST = 				\
 	README.md			\
@@ -40,3 +40,6 @@ dist-hook: $(BUILD_EXTRA_DIST)
 
 gmime-$(GMIME_API_VERSION).pc: gmime.pc
 	-cp gmime.pc gmime-$(GMIME_API_VERSION).pc
+
+release: dist
+	shasum -a 256 gmime-$(GMIME_VERSION).tar.xz > gmime-$(GMIME_VERSION).sha256sum

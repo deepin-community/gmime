@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -53,9 +53,9 @@ typedef enum {
  *
  * The MIME specifications specify that the proper method for encoding Content-Type and
  * Content-Disposition parameter values is the method described in
- * <a href="https://tools.ietf.org/html/rfc2231">rfc2231</a>. However, it is common for
+ * <ulink url="https://tools.ietf.org/html/rfc2231">rfc2231</ulink>. However, it is common for
  * some older email clients to improperly encode using the method described in
- * <a href="https://tools.ietf.org/html/rfc2047">rfc2047</a> instead.
+ * <ulink url="https://tools.ietf.org/html/rfc2047">rfc2047</ulink> instead.
  **/
 typedef enum {
 	GMIME_PARAM_ENCODING_METHOD_DEFAULT = 0,

@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1049,12 +1049,14 @@ int main (int argc, char **argv)
 	
 	testsuite_init (argc, argv);
 	
+#ifdef ENABLE_CRYPTO
 	if (!(gpg = g_find_program_in_path ("gpg2")))
 		if (!(gpg = g_find_program_in_path ("gpg")))
 			return EXIT_FAILURE;
 	
 	if (testsuite_setup_gpghome (gpg) != 0)
 		return EXIT_FAILURE;
+#endif
 	
 	testsuite_start ("Autocrypt: generate headers");
 	test_ah_generation ();

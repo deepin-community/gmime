@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -383,6 +383,9 @@ g_mime_gpgme_get_signatures (gpgme_ctx_t ctx, gboolean verify)
 					if (uid->name && *uid->name && !g_mime_certificate_get_name (signature->cert))
 						g_mime_certificate_set_name (signature->cert, uid->name);
 					
+					if (uid->address && *uid->address && !g_mime_certificate_get_email (signature->cert))
+						g_mime_certificate_set_email (signature->cert, uid->address);
+
 					if (uid->email && *uid->email && !g_mime_certificate_get_email (signature->cert))
 						g_mime_certificate_set_email (signature->cert, uid->email);
 					
@@ -590,6 +593,7 @@ g_mime_gpgme_get_decrypt_result (gpgme_ctx_t ctx)
 		
 		g_mime_certificate_set_pubkey_algo (cert, (GMimePubKeyAlgo) recipient->pubkey_algo);
 		g_mime_certificate_set_key_id (cert, recipient->keyid);
+		g_object_unref(cert);
 		
 		recipient = recipient->next;
 	}

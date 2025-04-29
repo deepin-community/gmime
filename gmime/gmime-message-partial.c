@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -241,7 +241,7 @@ partial_compare (const void *v1, const void *v2)
 
 /**
  * g_mime_message_partial_reconstruct_message:
- * @partials: an array of message/partial mime parts
+ * @partials: (array length=num) (element-type GMimeMessagePartial): an array of message/partial mime parts
  * @num: the number of elements in @partials
  *
  * Reconstructs the GMimeMessage from the given message/partial parts
@@ -359,7 +359,7 @@ message_partial_message_new (GMimeMessage *base)
  * @max_size bytes or fewer. @nparts is set to the number of
  * #GMimeMessagePartial objects created.
  *
- * Returns: (nullable) (transfer full): an array of #GMimeMessage objects and
+ * Returns: (nullable) (transfer full) (array length=nparts): an array of #GMimeMessage objects and
  * sets @nparts to the number of messages returned or %NULL on fail.
  **/
 GMimeMessage **

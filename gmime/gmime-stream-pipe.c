@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*  GMime
- *  Copyright (C) 2000-2020 Jeffrey Stedfast
+ *  Copyright (C) 2000-2022 Jeffrey Stedfast
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License
@@ -265,18 +265,21 @@ stream_reset (GMimeStream *stream)
 static gint64
 stream_seek (GMimeStream *stream, gint64 offset, GMimeSeekWhence whence)
 {
+	errno = ESPIPE;
 	return -1;
 }
 
 static gint64
 stream_tell (GMimeStream *stream)
 {
+	errno = ESPIPE;
 	return -1;
 }
 
 static gint64
 stream_length (GMimeStream *stream)
 {
+	errno = ESPIPE;
 	return -1;
 }
 
